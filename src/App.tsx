@@ -37,10 +37,6 @@ import AdminLogin from './admin/AdminLogin';
 import UniversityManagement from './admin/UniversityManagement';
 import { auth, db, loginWithGoogle, logout, onAuthStateChanged, User, OperationType, handleFirestoreError } from './firebase';
 import { doc, onSnapshot, setDoc, collection, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
-// import { GoogleGenAI } from "@google/genai"; // Removed from client side
-
-// const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" }); // Removed from client side
-
 // --- DATA CONSTANTS ---
 
 const UNIVERSITIES = [
@@ -719,8 +715,7 @@ function StudentPortal() {
             { id: "match", label: "University Match", icon: <GraduationCap size={18}/> },
             { id: "scholarship", label: "Scholarships", icon: <Award size={18}/> },
             { id: "tracker", label: "App Tracker", icon: <ClipboardList size={18}/> },
-            { id: "calculator", label: "Cost Calculator", icon: <Calculator size={18}/> },
-            { id: "ai", label: "AI Counselor", icon: <Sparkles size={18}/> }
+            { id: "calculator", label: "Cost Calculator", icon: <Calculator size={18}/> }
           ].map(tab => (
             <button
               key={tab.id}
@@ -796,8 +791,7 @@ function StudentPortal() {
                   { id: "match", label: "University Match", icon: <GraduationCap size={20}/> },
                   { id: "scholarship", label: "Scholarships", icon: <Award size={20}/> },
                   { id: "tracker", label: "App Tracker", icon: <ClipboardList size={20}/> },
-                  { id: "calculator", label: "Cost Calculator", icon: <Calculator size={20}/> },
-                  { id: "ai", label: "AI Counselor", icon: <Sparkles size={20}/> }
+                  { id: "calculator", label: "Cost Calculator", icon: <Calculator size={20}/> }
                 ].map(tab => (
                   <button
                     key={tab.id}
@@ -915,122 +909,9 @@ function StudentPortal() {
             {page === "scholarship" && <ScholarshipPage profile={profile} />}
             {page === "tracker" && <TrackerPage apps={apps} onUpdateStatus={handleUpdateApp} onRemove={handleRemoveApp} onAdd={() => setPage("match")} />}
             {page === "calculator" && <CostCalcPage />}
-            {page === "ai" && <AICounselorPage profile={profile} />}
           </>
         )}
       </main>
-    </div>
-  );
-}
-
-function AICounselorPage({ profile }: { profile: any }) {
-  const [messages, setMessages] = useState<{ role: 'user' | 'ai', text: string }[]>([
-    { role: 'ai', text: `Hello ${profile.fullName || 'there'}! I'm your UniPath AI Counselor. Based on your profile, I can help you find the best universities, improve your SOP, or explain visa requirements. What's on your mind?` }
-  ]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const sendMessage = async () => {
-    if (!input.trim() || loading) return;
-    
-    const userMsg = input.trim();
-    setInput("");
-    setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
-    setLoading(true);
-
-    try {
-      const context = `
-        User Profile:
-        - Name: ${profile.fullName}
-        - CGPA: ${profile.cgpa} (${profile.cgpaScale})
-        - IELTS: ${profile.ielts}
-        - Target: ${profile.targetDegree} in ${profile.targetSubject}
-        - Countries: ${profile.targetCountries.join(", ")}
-        - Budget: $${profile.budgetMax}/yr
-        - Goals: ${profile.careerGoal}
-        
-        Instructions: You are a professional study abroad counselor for Bangladeshi students. 
-        Provide specific, encouraging, and accurate advice. 
-        Keep responses concise and formatted with markdown.
-        
-        Chat History:
-        ${messages.map(m => `${m.role}: ${m.text}`).join("\n")}
-        
-        User: ${userMsg}
-      `;
-
-      const res = await fetch('/api/ai/counsel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: context })
-      });
-      
-      const data = await res.json();
-      
-      if (data.error) throw new Error(data.error);
-      
-      setMessages(prev => [...prev, { role: 'ai', text: data.text || "I'm sorry, I couldn't generate a response." }]);
-    } catch (error) {
-      console.error("AI Error:", error);
-      setMessages(prev => [...prev, { role: 'ai', text: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment." }]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="max-w-4xl mx-auto h-[70vh] flex flex-col bg-white rounded-3xl border border-border-main shadow-xl overflow-hidden">
-      <div className="bg-navy p-6 flex items-center gap-3">
-        <div className="w-10 h-10 bg-gold rounded-full flex items-center justify-center">
-          <Sparkles className="text-navy" size={20} />
-        </div>
-        <div>
-          <h3 className="text-white font-display font-extrabold">AI Study Counselor</h3>
-          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Powered by Gemini</p>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {messages.map((m, i) => (
-          <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] p-4 rounded-2xl ${
-              m.role === 'user' 
-                ? 'bg-blue-primary text-white rounded-tr-none' 
-                : 'bg-slate-50 text-navy rounded-tl-none border border-slate-100'
-            }`}>
-              <p className="text-sm font-medium whitespace-pre-wrap">{m.text}</p>
-            </div>
-          </div>
-        ))}
-        {loading && (
-          <div className="flex justify-start">
-            <div className="bg-slate-50 p-4 rounded-2xl rounded-tl-none border border-slate-100 flex items-center gap-2">
-              <Loader2 className="animate-spin text-blue-primary" size={16} />
-              <span className="text-xs font-bold text-muted">Counselor is thinking...</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="p-6 border-t border-slate-100 bg-slate-50/50">
-        <div className="flex gap-3">
-          <input 
-            type="text" 
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyPress={e => e.key === 'Enter' && sendMessage()}
-            placeholder="Ask about universities, scholarships, or visa..."
-            className="flex-1 p-4 bg-white border-2 border-slate-100 rounded-xl outline-none focus:border-blue-primary transition-all font-medium"
-          />
-          <button 
-            onClick={sendMessage}
-            disabled={loading || !input.trim()}
-            className="bg-blue-primary text-white p-4 rounded-xl hover:bg-blue-hover transition-all disabled:opacity-50"
-          >
-            <Send size={20} />
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
