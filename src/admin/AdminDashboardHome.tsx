@@ -1,14 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Users, 
   GraduationCap, 
   Award, 
   ClipboardList, 
   TrendingUp, 
-  TrendingDown,
   Plus,
   Bell,
-  FileText,
   Eye
 } from 'lucide-react';
 import { 
@@ -19,41 +17,157 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  BarChart,
-  Bar,
   PieChart,
   Pie,
   Cell
 } from 'recharts';
+import { db } from '../firebase';
+import { collection, onSnapshot, query, orderBy, limit, writeBatch, doc, getDocs } from 'firebase/firestore';
 
-const regData = [
-  { name: 'Mar 10', users: 40 },
-  { name: 'Mar 15', users: 70 },
-  { name: 'Mar 20', users: 120 },
-  { name: 'Mar 25', users: 190 },
-  { name: 'Mar 30', users: 250 },
-  { name: 'Apr 05', users: 310 },
-  { name: 'Apr 08', users: 345 },
+const UNIVERSITIES = [
+  {
+    name: "University of Toronto", shortName: "UofT", country: "Canada", city: "Toronto",
+    qsRank: 21, acceptanceRate: 43, tuitionPerYear: 35000, livingCost: 15000,
+    minCGPA: 3.5, minIELTS: 6.5, minTOEFL: 93, greRequired: false, workExpRequired: false,
+    programs: ["Computer Science", "Engineering", "Business", "Life Sciences"],
+    degreeLevel: ["Bachelor", "Master", "PhD"],
+    scholarships: ["Lester B. Pearson International Scholarship"],
+    scholarshipAmount: 40000, postStudyVisa: true, postStudyYears: 3,
+    employmentRate: 92, avgSalary: 75000, bangladeshiCommunity: "Large",
+    partTimeAllowed: true, partTimeHours: 20, logo: "🍁", tier: 1,
+    intakes: ["Fall"], fallDeadline: "2025-01-15", springDeadline: null,
+    tags: ["Research", "Tech Hub", "Prestige"], status: "Active", score: 95
+  },
+  {
+    name: "University of Melbourne", shortName: "Unimelb", country: "Australia", city: "Melbourne",
+    qsRank: 33, acceptanceRate: 70, tuitionPerYear: 28000, livingCost: 18000,
+    minCGPA: 3.0, minIELTS: 6.5, minTOEFL: 79, greRequired: false, workExpRequired: false,
+    programs: ["Architecture", "Arts", "Biomedicine", "Commerce"],
+    degreeLevel: ["Bachelor", "Master", "PhD"],
+    scholarships: ["Melbourne International Undergraduate Scholarship"],
+    scholarshipAmount: 10000, postStudyVisa: true, postStudyYears: 2,
+    employmentRate: 88, avgSalary: 68000, bangladeshiCommunity: "Medium",
+    partTimeAllowed: true, partTimeHours: 24, logo: "🦘", tier: 1,
+    intakes: ["Fall", "Spring"], fallDeadline: "2025-05-31", springDeadline: "2024-10-31",
+    tags: ["Global", "Culture", "Innovation"], status: "Active", score: 92
+  }
 ];
 
-const countryData = [
-  { name: 'USA', value: 400 },
-  { name: 'UK', value: 300 },
-  { name: 'Canada', value: 300 },
-  { name: 'Australia', value: 200 },
-  { name: 'Germany', value: 150 },
+const SCHOLARSHIPS = [
+  {
+    name: "DAAD Scholarship", country: "Germany",
+    degreeLevel: ["Master", "PhD"], amount: 18000,
+    coverage: ["Full Tuition", "Monthly Stipend", "Travel Allowance"],
+    minCGPA: 3.2, minIELTS: 6.5, deadline: "2024-12-31",
+    type: "Government", renewable: true, subjects: ["Engineering", "Development", "Economics"],
+    description: "One of the most prestigious scholarships for international students to study in Germany.",
+    link: "https://www.daad.de", featured: true
+  }
 ];
 
 const COLORS = ['#141414', '#F27D26', '#3b82f6', '#10b981', '#f59e0b'];
 
 export default function AdminDashboardHome() {
-  const stats = [
-    { label: "Total Students", value: "1,284", trend: "+12%", up: true, icon: <Users size={24} /> },
-    { label: "Active Users (7d)", value: "456", trend: "+5%", up: true, icon: <TrendingUp size={24} /> },
-    { label: "Universities", value: "85", trend: "0%", up: true, icon: <GraduationCap size={24} /> },
-    { label: "Scholarships", value: "124", trend: "+8", up: true, icon: <Award size={24} /> },
-    { label: "Applications", value: "3,412", trend: "+18%", up: true, icon: <ClipboardList size={24} /> },
-    { label: "New Signups", value: "24", trend: "-2%", up: false, icon: <Users size={24} /> },
+  const [students, setStudents] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    totalApps: 0,
+    universities: 0,
+    scholarships: 0
+  });
+  const [countryStats, setCountryStats] = useState<any[]>([]);
+  const [isSeeding, setIsSeeding] = useState(false);
+
+  const handleSeedData = async () => {
+    if (!window.confirm("This will populate the database with sample universities and scholarships. Continue?")) return;
+    setIsSeeding(true);
+    try {
+      const batch = writeBatch(db);
+      
+      // Seed Universities
+      for (const uni of UNIVERSITIES) {
+        const newDoc = doc(collection(db, "universities"));
+        batch.set(newDoc, uni);
+      }
+
+      // Seed Scholarships
+      for (const schol of SCHOLARSHIPS) {
+        const newDoc = doc(collection(db, "scholarships"));
+        batch.set(newDoc, schol);
+      }
+
+      await batch.commit();
+      alert("Data seeded successfully!");
+    } catch (err) {
+      console.error("Seeding error:", err);
+      alert("Failed to seed data.");
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
+  useEffect(() => {
+    // Fetch latest students
+    const q = query(collection(db, "users"), orderBy("updatedAt", "desc"), limit(5));
+    const unsubStudents = onSnapshot(q, (snap) => {
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setStudents(data);
+    });
+
+    // Fetch total counts
+    const unsubAllStudents = onSnapshot(collection(db, "users"), (snap) => {
+      const total = snap.size;
+      
+      // Calculate country distribution
+      const countries: Record<string, number> = {};
+      snap.docs.forEach(doc => {
+        const data = doc.data();
+        if (data.targetCountries && Array.isArray(data.targetCountries)) {
+          data.targetCountries.forEach((c: string) => {
+            countries[c] = (countries[c] || 0) + 1;
+          });
+        }
+      });
+      
+      const countryData = Object.entries(countries)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 5);
+      
+      setCountryStats(countryData);
+      setStats(prev => ({ ...prev, totalStudents: total }));
+    });
+
+    // Fetch Universities count
+    const unsubUnis = onSnapshot(collection(db, "universities"), (snap) => {
+      setStats(prev => ({ ...prev, universities: snap.size }));
+    });
+
+    // Fetch Scholarships count
+    const unsubSchols = onSnapshot(collection(db, "scholarships"), (snap) => {
+      setStats(prev => ({ ...prev, scholarships: snap.size }));
+    });
+
+    return () => {
+      unsubStudents();
+      unsubAllStudents();
+      unsubUnis();
+      unsubSchols();
+    };
+  }, []);
+
+  const dashboardStats = [
+    { label: "Total Students", value: stats.totalStudents.toLocaleString(), trend: "+100%", up: true, icon: <Users size={24} /> },
+    { label: "Active Users (7d)", value: stats.totalStudents.toLocaleString(), trend: "0%", up: true, icon: <TrendingUp size={24} /> },
+    { label: "Universities", value: stats.universities.toString(), trend: "Real", up: true, icon: <GraduationCap size={24} /> },
+    { label: "Scholarships", value: stats.scholarships.toString(), trend: "Real", up: true, icon: <Award size={24} /> },
+    { label: "Applications", value: "0", trend: "0%", up: true, icon: <ClipboardList size={24} /> },
+    { label: "New Signups", value: stats.totalStudents.toString(), trend: "Today", up: true, icon: <Users size={24} /> },
+  ];
+
+  const regData = [
+    { name: 'Mar 10', users: 0 },
+    { name: 'Apr 08', users: stats.totalStudents },
   ];
 
   return (
@@ -64,8 +178,12 @@ export default function AdminDashboardHome() {
           <p className="text-slate-500 text-sm font-medium">Welcome back, Admin. Here's what's happening today.</p>
         </div>
         <div className="flex gap-3">
-          <button className="bg-white border border-[#141414] px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-50 transition-colors flex items-center gap-2">
-            <Plus size={18} /> Add University
+          <button 
+            onClick={handleSeedData}
+            disabled={isSeeding}
+            className="bg-white border border-[#141414] px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-50 transition-colors flex items-center gap-2 disabled:opacity-50"
+          >
+            <Plus size={18} /> {isSeeding ? "Seeding..." : "Seed Initial Data"}
           </button>
           <button className="bg-[#141414] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-800 transition-colors flex items-center gap-2">
             <Bell size={18} /> Send Announcement
@@ -75,7 +193,7 @@ export default function AdminDashboardHome() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 lg:gap-6">
-        {stats.map((stat, i) => (
+        {dashboardStats.map((stat, i) => (
           <div key={i} className="bg-white p-4 lg:p-6 border border-[#141414] rounded-xl shadow-[4px_4px_0px_0px_#141414]">
             <div className="flex items-center justify-between mb-3 lg:mb-4">
               <div className="p-1.5 lg:p-2 bg-slate-50 rounded-lg">
@@ -118,7 +236,7 @@ export default function AdminDashboardHome() {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={countryData}
+                  data={countryStats.length > 0 ? countryStats : [{ name: 'No Data', value: 1 }]}
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
@@ -126,16 +244,17 @@ export default function AdminDashboardHome() {
                   paddingAngle={5}
                   dataKey="value"
                 >
-                  {countryData.map((entry, index) => (
+                  {countryStats.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
+                  {countryStats.length === 0 && <Cell fill="#e2e8f0" />}
                 </Pie>
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
           </div>
           <div className="flex flex-wrap justify-center gap-4 mt-4">
-            {countryData.map((entry, index) => (
+            {countryStats.map((entry, index) => (
               <div key={index} className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
                 <span className="text-xs font-bold text-slate-600">{entry.name}</span>
@@ -164,38 +283,51 @@ export default function AdminDashboardHome() {
               </tr>
             </thead>
             <tbody>
-              {[1, 2, 3, 4, 5].map((_, i) => (
-                <tr key={i} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-slate-200 rounded-full shrink-0" />
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold truncate">Student Name {i + 1}</p>
-                        <p className="text-[10px] text-slate-500 truncate">student{i+1}@example.com</p>
+              {students.map((student, i) => {
+                const fields = ["fullName", "cgpa", "ielts", "targetDegree"];
+                const filled = fields.filter(f => student[f]).length;
+                const pct = Math.round((filled / fields.length) * 100);
+
+                return (
+                  <tr key={student.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-[#141414] text-white rounded-full shrink-0 flex items-center justify-center font-bold text-xs">
+                          {student.fullName?.[0] || student.email?.[0]?.toUpperCase() || "?"}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold truncate">{student.fullName || "Unnamed Student"}</p>
+                          <p className="text-[10px] text-slate-500 truncate">{student.email}</p>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="p-4 hidden sm:table-cell">
-                    <p className="text-sm font-medium">Master's in CS</p>
-                    <p className="text-xs text-slate-500">USA</p>
-                  </td>
-                  <td className="p-4 text-sm font-mono hidden md:table-cell">3.85 / 4.0</td>
-                  <td className="p-4">
-                    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-gold h-full" style={{ width: '85%' }} />
-                    </div>
-                    <p className="text-[10px] font-bold text-slate-500 mt-1">85%</p>
-                  </td>
-                  <td className="p-4 hidden lg:table-cell">
-                    <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">Active</span>
-                  </td>
-                  <td className="p-4">
-                    <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-[#141414]">
-                      <Eye size={18} />
-                    </button>
-                  </td>
+                    </td>
+                    <td className="p-4 hidden sm:table-cell">
+                      <p className="text-sm font-medium">{student.targetDegree || "N/A"}</p>
+                      <p className="text-xs text-slate-500">{student.targetCountries?.join(', ') || "N/A"}</p>
+                    </td>
+                    <td className="p-4 text-sm font-mono hidden md:table-cell">{student.cgpa || "0.0"} / {student.cgpaScale || "4.0"}</td>
+                    <td className="p-4">
+                      <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                        <div className="bg-gold h-full" style={{ width: `${pct}%` }} />
+                      </div>
+                      <p className="text-[10px] font-bold text-slate-500 mt-1">{pct}%</p>
+                    </td>
+                    <td className="p-4 hidden lg:table-cell">
+                      <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">Active</span>
+                    </td>
+                    <td className="p-4">
+                      <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-[#141414]">
+                        <Eye size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+              {students.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-slate-400 font-bold">No students registered yet.</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

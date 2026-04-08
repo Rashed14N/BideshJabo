@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   Filter, 
@@ -6,24 +6,98 @@ import {
   MoreVertical, 
   Edit2, 
   Trash2, 
-  ExternalLink,
   Download,
   CheckCircle2,
-  XCircle,
   Clock
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-
-const MOCK_UNIS = [
-  { id: 1, name: "Harvard University", country: "USA", rank: 1, status: "Active", programs: 124, score: 98 },
-  { id: 2, name: "Oxford University", country: "UK", rank: 2, status: "Active", programs: 98, score: 97 },
-  { id: 3, name: "MIT", country: "USA", rank: 3, status: "Active", programs: 156, score: 99 },
-  { id: 4, name: "University of Toronto", country: "Canada", rank: 25, status: "Draft", programs: 84, score: 88 },
-  { id: 5, name: "National University of Singapore", country: "Singapore", rank: 11, status: "Active", programs: 72, score: 92 },
-];
+import { db } from '../firebase';
+import { collection, onSnapshot, query, orderBy, deleteDoc, doc, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { X } from 'lucide-react';
 
 export default function UniversityManagement() {
   const [search, setSearch] = useState("");
+  const [unis, setUnis] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingUni, setEditingUni] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    name: "", country: "", qsRank: "", tuitionPerYear: "", minCGPA: "", minIELTS: "", status: "Active"
+  });
+
+  useEffect(() => {
+    const q = query(collection(db, "universities"), orderBy("name", "asc"));
+    const unsub = onSnapshot(q, (snap) => {
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setUnis(data);
+      setLoading(false);
+    });
+    return () => unsub();
+  }, []);
+
+  const handleOpenModal = (uni: any = null) => {
+    if (uni) {
+      setEditingUni(uni);
+      setFormData({
+        name: uni.name || "",
+        country: uni.country || "",
+        qsRank: uni.qsRank?.toString() || "",
+        tuitionPerYear: uni.tuitionPerYear?.toString() || "",
+        minCGPA: uni.minCGPA?.toString() || "",
+        minIELTS: uni.minIELTS?.toString() || "",
+        status: uni.status || "Active"
+      });
+    } else {
+      setEditingUni(null);
+      setFormData({
+        name: "", country: "", qsRank: "", tuitionPerYear: "", minCGPA: "", minIELTS: "", status: "Active"
+      });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const data = {
+        ...formData,
+        qsRank: parseInt(formData.qsRank) || 0,
+        tuitionPerYear: parseInt(formData.tuitionPerYear) || 0,
+        minCGPA: parseFloat(formData.minCGPA) || 0,
+        minIELTS: parseFloat(formData.minIELTS) || 0,
+        updatedAt: serverTimestamp()
+      };
+
+      if (editingUni) {
+        await updateDoc(doc(db, "universities", editingUni.id), data);
+      } else {
+        await addDoc(collection(db, "universities"), {
+          ...data,
+          createdAt: serverTimestamp(),
+          programs: [],
+          scholarships: []
+        });
+      }
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error("Error saving university:", err);
+    }
+  };
+
+  const filteredUnis = unis.filter(u => 
+    u.name.toLowerCase().includes(search.toLowerCase()) ||
+    u.country.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this university?")) {
+      try {
+        await deleteDoc(doc(db, "universities", id));
+      } catch (err) {
+        console.error("Error deleting university:", err);
+      }
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -36,7 +110,10 @@ export default function UniversityManagement() {
           <button className="bg-white border border-[#141414] px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-50 transition-colors flex items-center gap-2">
             <Download size={18} /> Export CSV
           </button>
-          <button className="bg-[#141414] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-800 transition-colors flex items-center gap-2">
+          <button 
+            onClick={() => handleOpenModal()}
+            className="bg-[#141414] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-800 transition-colors flex items-center gap-2"
+          >
             <Plus size={18} /> Add University
           </button>
         </div>
@@ -90,46 +167,52 @@ export default function UniversityManagement() {
               </tr>
             </thead>
             <tbody>
-              {MOCK_UNIS.map((uni) => (
+              {filteredUnis.map((uni) => (
                 <tr key={uni.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors group">
                   <td className="p-4 hidden sm:table-cell"><input type="checkbox" className="rounded" /></td>
                   <td className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 lg:w-10 lg:h-10 bg-slate-100 rounded-lg flex items-center justify-center font-bold text-slate-400 shrink-0">
+                      <div className="w-8 h-8 lg:w-10 lg:h-10 bg-[#141414] text-white rounded-lg flex items-center justify-center font-bold shrink-0">
                         {uni.name[0]}
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-bold truncate">{uni.name}</p>
-                        <p className="text-[10px] text-slate-400 font-mono uppercase truncate">ID: UN-{uni.id.toString().padStart(4, '0')}</p>
+                        <p className="text-[10px] text-slate-400 font-mono uppercase truncate">ID: {uni.id}</p>
                       </div>
                     </div>
                   </td>
                   <td className="p-4 text-sm font-medium hidden sm:table-cell">{uni.country}</td>
-                  <td className="p-4 text-sm font-mono hidden md:table-cell">#{uni.rank}</td>
+                  <td className="p-4 text-sm font-mono hidden md:table-cell">#{uni.qsRank || uni.rank || "N/A"}</td>
                   <td className="p-4 hidden lg:table-cell">
                     <div className="flex items-center gap-2">
                       <div className="flex-1 bg-slate-100 h-1.5 rounded-full max-w-[60px]">
-                        <div className="bg-blue-primary h-full" style={{ width: `${uni.score}%` }} />
+                        <div className="bg-blue-primary h-full" style={{ width: `${uni.score || 80}%` }} />
                       </div>
-                      <span className="text-xs font-bold">{uni.score}</span>
+                      <span className="text-xs font-bold">{uni.score || 80}</span>
                     </div>
                   </td>
-                  <td className="p-4 text-sm font-bold text-slate-600 hidden xl:table-cell">{uni.programs}</td>
+                  <td className="p-4 text-sm font-bold text-slate-600 hidden xl:table-cell">{uni.programs?.length || 0}</td>
                   <td className="p-4">
                     <span className={cn(
                       "text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 w-fit",
                       uni.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
                     )}>
                       {uni.status === 'Active' ? <CheckCircle2 size={10} /> : <Clock size={10} />}
-                      <span className="hidden xs:inline">{uni.status}</span>
+                      <span className="hidden xs:inline">{uni.status || 'Active'}</span>
                     </span>
                   </td>
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <button className="p-2 hover:bg-white hover:shadow-sm rounded-lg text-slate-400 hover:text-blue-primary transition-all">
+                      <button 
+                        onClick={() => handleOpenModal(uni)}
+                        className="p-2 hover:bg-white hover:shadow-sm rounded-lg text-slate-400 hover:text-blue-primary transition-all"
+                      >
                         <Edit2 size={16} />
                       </button>
-                      <button className="p-2 hover:bg-white hover:shadow-sm rounded-lg text-slate-400 hover:text-red-600 transition-all hidden sm:block">
+                      <button 
+                        onClick={() => handleDelete(uni.id)}
+                        className="p-2 hover:bg-white hover:shadow-sm rounded-lg text-slate-400 hover:text-red-600 transition-all hidden sm:block"
+                      >
                         <Trash2 size={16} />
                       </button>
                       <button className="p-2 hover:bg-white hover:shadow-sm rounded-lg text-slate-400 hover:text-[#141414] transition-all">
@@ -139,19 +222,78 @@ export default function UniversityManagement() {
                   </td>
                 </tr>
               ))}
+              {filteredUnis.length === 0 && !loading && (
+                <tr>
+                  <td colSpan={8} className="p-8 text-center text-slate-400 font-bold">No universities found.</td>
+                </tr>
+              )}
+              {loading && (
+                <tr>
+                  <td colSpan={8} className="p-8 text-center text-slate-400 font-bold">Loading...</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
         <div className="p-4 bg-slate-50 border-t border-[#141414] flex items-center justify-between">
-          <p className="text-xs font-bold text-slate-500">Showing 1-5 of 85 universities</p>
-          <div className="flex items-center gap-2">
-            <button className="px-3 py-1 bg-white border border-slate-200 rounded text-xs font-bold disabled:opacity-50" disabled>Previous</button>
-            <button className="px-3 py-1 bg-[#141414] text-white rounded text-xs font-bold">1</button>
-            <button className="px-3 py-1 bg-white border border-slate-200 rounded text-xs font-bold">2</button>
-            <button className="px-3 py-1 bg-white border border-slate-200 rounded text-xs font-bold">Next</button>
-          </div>
+          <p className="text-xs font-bold text-slate-500">Showing {filteredUnis.length} universities</p>
         </div>
       </div>
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-xl font-display font-extrabold">{editingUni ? "Edit University" : "Add New University"}</h3>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase">University Name</label>
+                <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Country</label>
+                  <input required type="text" value={formData.country} onChange={e => setFormData({...formData, country: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">QS Rank</label>
+                  <input type="number" value={formData.qsRank} onChange={e => setFormData({...formData, qsRank: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Tuition/Year ($)</label>
+                  <input type="number" value={formData.tuitionPerYear} onChange={e => setFormData({...formData, tuitionPerYear: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Min CGPA</label>
+                  <input type="number" step="0.01" value={formData.minCGPA} onChange={e => setFormData({...formData, minCGPA: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Min IELTS</label>
+                  <input type="number" step="0.5" value={formData.minIELTS} onChange={e => setFormData({...formData, minIELTS: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Status</label>
+                  <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]">
+                    <option value="Active">Active</option>
+                    <option value="Draft">Draft</option>
+                    <option value="Hidden">Hidden</option>
+                  </select>
+                </div>
+              </div>
+              <div className="pt-4 flex gap-3">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 border border-slate-200 rounded-xl font-bold hover:bg-slate-50">Cancel</button>
+                <button type="submit" className="flex-1 py-3 bg-[#141414] text-white rounded-xl font-bold hover:bg-slate-800 transition-all">Save University</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

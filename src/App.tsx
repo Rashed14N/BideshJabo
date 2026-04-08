@@ -414,7 +414,7 @@ function MatchBadge({ category }: { category: string }) {
 
 // --- PAGE COMPONENTS ---
 
-function DashboardPage({ profile, setPage, apps }: { profile: any, setPage: any, apps: any[] }) {
+function DashboardPage({ profile, setPage, apps, universities, scholarships }: { profile: any, setPage: any, apps: any[], universities: any[], scholarships: any[] }) {
   const profilePct = useMemo(() => {
     const fields = ["fullName", "cgpa", "ielts", "targetDegree"];
     const filled = fields.filter(f => profile[f]).length;
@@ -423,20 +423,20 @@ function DashboardPage({ profile, setPage, apps }: { profile: any, setPage: any,
 
   const topMatches = useMemo(() => {
     if (!profile.cgpa || !profile.ielts || !profile.targetDegree) return [];
-    return UNIVERSITIES
+    return universities
       .map(u => ({ ...u, match: calculateMatchScore(profile, u) }))
       .sort((a, b) => b.match.score - a.match.score)
       .slice(0, 3);
-  }, [profile]);
+  }, [profile, universities]);
 
   const eligibleScholarships = useMemo(() => {
     if (!profile.cgpa || !profile.ielts) return [];
-    return SCHOLARSHIPS
+    return scholarships
       .map(s => ({ ...s, match: calculateScholarshipMatch(profile, s) }))
       .filter(s => s.match.eligible)
       .sort((a, b) => b.match.score - a.match.score)
       .slice(0, 3);
-  }, [profile]);
+  }, [profile, scholarships]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -546,8 +546,32 @@ function StudentPortal() {
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [universities, setUniversities] = useState<any[]>(UNIVERSITIES);
+  const [scholarships, setScholarships] = useState<any[]>(SCHOLARSHIPS);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Fetch Universities & Scholarships from Firestore
+  useEffect(() => {
+    const unsubUnis = onSnapshot(collection(db, "universities"), (snap) => {
+      if (!snap.empty) {
+        const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setUniversities(data);
+      }
+    });
+
+    const unsubSchols = onSnapshot(collection(db, "scholarships"), (snap) => {
+      if (!snap.empty) {
+        const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setScholarships(data);
+      }
+    });
+
+    return () => {
+      unsubUnis();
+      unsubSchols();
+    };
+  }, []);
 
   // Handle URL sync for student portal (optional but good for UX)
   useEffect(() => {
@@ -920,10 +944,10 @@ function StudentPortal() {
           </div>
         ) : (
           <>
-            {page === "dashboard" && <DashboardPage profile={profile} setPage={setPage} apps={apps} />}
+            {page === "dashboard" && <DashboardPage profile={profile} setPage={setPage} apps={apps} universities={universities} scholarships={scholarships} />}
             {page === "profile" && <ProfilePage profile={profile} setProfile={setProfile} setPage={setPage} onSave={handleSaveProfile} />}
-            {page === "match" && <MatchPage profile={profile} setPage={setPage} onAddApp={handleAddApp} />}
-            {page === "scholarship" && <ScholarshipPage profile={profile} />}
+            {page === "match" && <MatchPage profile={profile} setPage={setPage} onAddApp={handleAddApp} universities={universities} />}
+            {page === "scholarship" && <ScholarshipPage profile={profile} scholarships={scholarships} />}
             {page === "tracker" && <TrackerPage apps={apps} onUpdateStatus={handleUpdateApp} onRemove={handleRemoveApp} onAdd={() => setPage("match")} />}
             {page === "calculator" && <CostCalcPage />}
           </>
@@ -1261,12 +1285,12 @@ function ProfilePage({ profile, setProfile, setPage, onSave }: { profile: any, s
   );
 }
 
-function MatchPage({ profile, setPage, onAddApp }: { profile: any, setPage: any, onAddApp: any }) {
+function MatchPage({ profile, setPage, onAddApp, universities }: { profile: any, setPage: any, onAddApp: any, universities: any[] }) {
   const [filters, setFilters] = useState({ country: "All", degree: "All", budget: "Any", sort: "score" });
   const [selectedUni, setSelectedUni] = useState<any>(null);
 
   const filteredUnis = useMemo(() => {
-    return UNIVERSITIES
+    return universities
       .map(u => ({ ...u, match: calculateMatchScore(profile, u) }))
       .filter(u => {
         const countryMatch = filters.country === "All" || u.country === filters.country;
@@ -1534,11 +1558,11 @@ function MatchPage({ profile, setPage, onAddApp }: { profile: any, setPage: any,
   );
 }
 
-function ScholarshipPage({ profile }: { profile: any }) {
+function ScholarshipPage({ profile, scholarships }: { profile: any, scholarships: any[] }) {
   const [filters, setFilters] = useState({ country: "All", degree: "All", eligibleOnly: false });
 
   const filteredSchs = useMemo(() => {
-    return SCHOLARSHIPS
+    return scholarships
       .map(s => ({ ...s, match: calculateScholarshipMatch(profile, s) }))
       .filter(s => {
         const countryMatch = filters.country === "All" || s.country === filters.country;
@@ -1547,9 +1571,9 @@ function ScholarshipPage({ profile }: { profile: any }) {
         return countryMatch && degreeMatch && eligibilityMatch;
       })
       .sort((a, b) => b.match.score - a.match.score);
-  }, [profile, filters]);
+  }, [profile, filters, scholarships]);
 
-  const countries = ["All", ...new Set(SCHOLARSHIPS.map(s => s.country))];
+  const countries = ["All", ...new Set(scholarships.map(s => s.country))];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
