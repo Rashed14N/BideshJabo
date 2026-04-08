@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
 
@@ -12,6 +13,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const JWT_SECRET = process.env.JWT_SECRET || "unipath-bd-secret-key-123";
+const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY || "");
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 async function startServer() {
   const app = express();
@@ -58,6 +61,24 @@ async function startServer() {
       res.json({ user: decoded });
     } catch (err) {
       res.status(401).json({ error: "Invalid token" });
+    }
+  });
+
+  // AI Counselor Route
+  app.post("/api/ai/counsel", async (req, res) => {
+    const { prompt, history } = req.body;
+    
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({ error: "Gemini API Key not configured on server" });
+    }
+
+    try {
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      res.json({ text: response.text() });
+    } catch (error: any) {
+      console.error("AI Server Error:", error);
+      res.status(500).json({ error: "Failed to generate AI response" });
     }
   });
 

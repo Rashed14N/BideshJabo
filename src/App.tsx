@@ -37,9 +37,9 @@ import AdminLogin from './admin/AdminLogin';
 import UniversityManagement from './admin/UniversityManagement';
 import { auth, db, loginWithGoogle, logout, onAuthStateChanged, User, OperationType, handleFirestoreError } from './firebase';
 import { doc, onSnapshot, setDoc, collection, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
-import { GoogleGenAI } from "@google/genai";
+// import { GoogleGenAI } from "@google/genai"; // Removed from client side
 
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+// const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" }); // Removed from client side
 
 // --- DATA CONSTANTS ---
 
@@ -952,14 +952,24 @@ function AICounselorPage({ profile }: { profile: any }) {
         Instructions: You are a professional study abroad counselor for Bangladeshi students. 
         Provide specific, encouraging, and accurate advice. 
         Keep responses concise and formatted with markdown.
+        
+        Chat History:
+        ${messages.map(m => `${m.role}: ${m.text}`).join("\n")}
+        
+        User: ${userMsg}
       `;
 
-      const response = await genAI.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: [context, ...messages.map(m => `${m.role}: ${m.text}`), `user: ${userMsg}`].join("\n")
+      const res = await fetch('/api/ai/counsel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: context })
       });
       
-      setMessages(prev => [...prev, { role: 'ai', text: response.text || "I'm sorry, I couldn't generate a response." }]);
+      const data = await res.json();
+      
+      if (data.error) throw new Error(data.error);
+      
+      setMessages(prev => [...prev, { role: 'ai', text: data.text || "I'm sorry, I couldn't generate a response." }]);
     } catch (error) {
       console.error("AI Error:", error);
       setMessages(prev => [...prev, { role: 'ai', text: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment." }]);
