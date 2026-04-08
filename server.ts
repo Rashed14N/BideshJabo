@@ -15,7 +15,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "unipath-bd-secret-key-123";
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT) || 3000;
 
   app.use(express.json());
   app.use(cookieParser());
@@ -76,9 +76,9 @@ async function startServer() {
     });
   }
 
-  if (process.env.NODE_ENV === "production" && !process.env.VERCEL) {
+  if (process.env.NODE_ENV === "production") {
     app.listen(PORT, "0.0.0.0", () => {
-      console.log(`Server running on http://localhost:${PORT}`);
+      console.log(`Server running on port ${PORT}`);
     });
   }
   return app;
