@@ -29,19 +29,21 @@ async function startServer() {
   app.post("/api/admin/login", (req, res) => {
     const { email, role } = req.body;
     
-    // In a real app, we'd verify the Firebase ID token here
-    // For this demo/prototype, we'll issue a JWT if the role is admin
-    if (role === "admin") {
+    // Security: Only allow the authorized admin email
+    const AUTHORIZED_ADMIN = "rashedtech14@gmail.com";
+    
+    if (role === "admin" && email === AUTHORIZED_ADMIN) {
       const token = jwt.sign({ email, role: "admin" }, JWT_SECRET, { expiresIn: "8h" });
       res.cookie("admin_token", token, { 
         httpOnly: true, 
         secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
         maxAge: 8 * 60 * 60 * 1000 
       });
       return res.json({ success: true });
     }
     
-    res.status(403).json({ error: "Unauthorized" });
+    res.status(403).json({ error: "Unauthorized: You do not have admin access." });
   });
 
   app.post("/api/admin/logout", (req, res) => {
