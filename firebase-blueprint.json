@@ -1,0 +1,68 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores user academic and personal details for university matching.",
+      "type": "object",
+      "properties": {
+        "fullName": { "type": "string", "description": "Full name of the student" },
+        "email": { "type": "string", "format": "email", "description": "Contact email" },
+        "phone": { "type": "string", "description": "Contact phone number" },
+        "city": { "type": "string", "description": "Current city" },
+        "country": { "type": "string", "description": "Current country (usually Bangladesh)" },
+        "educationLevel": { "type": "string", "enum": ["SSC", "HSC", "Bachelor", "Master"], "description": "Highest education level" },
+        "institution": { "type": "string", "description": "Current or last institution" },
+        "cgpa": { "type": "string", "description": "CGPA score" },
+        "cgpaScale": { "type": "string", "enum": ["4.0", "5.0"], "description": "CGPA scale" },
+        "graduationYear": { "type": "string", "description": "Year of graduation" },
+        "medium": { "type": "string", "enum": ["English", "Bangla", "Both"], "description": "Medium of instruction" },
+        "ielts": { "type": "string", "description": "IELTS overall score" },
+        "toefl": { "type": "string", "description": "TOEFL total score" },
+        "gre": { "type": "string", "description": "GRE score" },
+        "gmat": { "type": "string", "description": "GMAT score" },
+        "plannedTest": { "type": "string", "format": "date", "description": "Planned test date" },
+        "workExp": { "type": "string", "description": "Years of work experience" },
+        "jobTitle": { "type": "string", "description": "Current job title" },
+        "company": { "type": "string", "description": "Current company" },
+        "researchPapers": { "type": "string", "description": "Number of research papers" },
+        "portfolio": { "type": "string", "description": "Portfolio or GitHub URL" },
+        "targetDegree": { "type": "string", "enum": ["Bachelor", "Master", "PhD", "MBA"], "description": "Desired degree level" },
+        "targetSubject": { "type": "string", "description": "Desired subject of study" },
+        "targetCountries": { "type": "array", "items": { "type": "string" }, "description": "Preferred study destinations" },
+        "intake": { "type": "string", "enum": ["Fall", "Spring", "Summer"], "description": "Preferred intake" },
+        "budgetMax": { "type": "string", "description": "Maximum annual budget in USD" },
+        "scholarshipRequired": { "type": "string", "enum": ["no", "preferred", "yes"], "description": "Scholarship necessity" },
+        "careerGoal": { "type": "string", "description": "Long-term career goal" },
+        "whyAbroad": { "type": "string", "description": "Reason for studying abroad" },
+        "postStudyPlan": { "type": "string", "enum": ["Return to Bangladesh", "Settle abroad", "Undecided"], "description": "Plan after graduation" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
+      },
+      "required": ["fullName", "email"]
+    },
+    "Application": {
+      "title": "Application Tracker",
+      "description": "Tracks university applications for a specific user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "UID of the user who owns this application" },
+        "university": { "type": "string", "description": "Name of the university" },
+        "program": { "type": "string", "description": "Name of the program" },
+        "deadline": { "type": "string", "format": "date", "description": "Application deadline" },
+        "status": { "type": "string", "enum": ["researching", "preparing", "applied", "decision_pending", "accepted", "rejected", "waitlisted"], "description": "Current status" },
+        "notes": { "type": "string", "description": "Personal notes" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["userId", "university", "program", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile document"
+    },
+    "/users/{userId}/applications/{appId}": {
+      "schema": "Application",
+      "description": "User's university applications"
+    }
+  }
+}

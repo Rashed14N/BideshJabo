@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['fullName', 'email']) &&
+             data.fullName is string && data.fullName.size() > 0 && data.fullName.size() < 100 &&
+             data.email is string && data.email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") &&
+             (!('phone' in data) || (data.phone is string && data.phone.size() < 20)) &&
+             (!('cgpa' in data) || (data.cgpa is string && data.cgpa.size() < 10)) &&
+             (!('ielts' in data) || (data.ielts is string && data.ielts.size() < 5));
+    }
+
+    function isValidApplication(data) {
+      return data.keys().hasAll(['userId', 'university', 'program', 'status']) &&
+             data.userId == request.auth.uid &&
+             data.university is string && data.university.size() > 0 && data.university.size() < 200 &&
+             data.program is string && data.program.size() > 0 && data.program.size() < 200 &&
+             data.status in ['researching', 'preparing', 'applied', 'decision_pending', 'accepted', 'rejected', 'waitlisted'] &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() < 2000));
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // User Profiles
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserProfile(request.resource.data);
+      allow update: if isOwner(userId) && isValidUserProfile(request.resource.data);
+      allow delete: if isOwner(userId);
+
+      // Applications Subcollection
+      match /applications/{appId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidApplication(request.resource.data);
+        allow update: if isOwner(userId) && isValidApplication(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

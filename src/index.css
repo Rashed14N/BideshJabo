@@ -1,0 +1,31 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap');
+
+@theme {
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Syne", sans-serif;
+
+  --color-navy: #0a1628;
+  --color-navy2: #0f2044;
+  --color-blue-primary: #1a56db;
+  --color-blue-hover: #1e40af;
+  --color-gold: #f59e0b;
+  --color-gold-hover: #fbbf24;
+  --color-teal: #0d9488;
+  --color-red-primary: #ef4444;
+  --color-green-primary: #10b981;
+  --color-bg-page: #f0f4ff;
+  --color-card: #ffffff;
+  --color-text-main: #0a1628;
+  --color-muted: #64748b;
+  --color-border-main: #e2e8f0;
+}
+
+@layer base {
+  body {
+    @apply bg-bg-page text-text-main font-sans;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
