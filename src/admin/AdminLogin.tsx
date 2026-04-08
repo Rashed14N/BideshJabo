@@ -35,8 +35,12 @@ export default function AdminLogin() {
     } catch (err: any) {
       if (err.code === 'auth/popup-closed-by-user') {
         setError("Login popup was closed.");
+      } else if (err.code === 'auth/unauthorized-domain') {
+        setError("This domain is not authorized in Firebase. Please add your Railway URL to Firebase Console.");
+      } else if (err.code === 'auth/popup-blocked') {
+        setError("Login popup was blocked by your browser.");
       } else {
-        setError("An error occurred during login.");
+        setError(err.message || "An error occurred during login.");
       }
       console.error(err);
     } finally {

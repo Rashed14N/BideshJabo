@@ -544,6 +544,7 @@ function StudentPortal() {
   const [page, setPage] = useState("dashboard");
   const [user, setUser] = useState<User | null>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -631,12 +632,19 @@ function StudentPortal() {
   };
 
   const handleLogin = async () => {
+    setLoginError(null);
     try {
       await loginWithGoogle();
     } catch (error: any) {
       if (error.code === 'auth/popup-closed-by-user') {
-        console.log('Login popup closed by user');
         return;
+      }
+      if (error.code === 'auth/unauthorized-domain') {
+        setLoginError('This domain is not authorized in Firebase. Please add your Railway URL to Firebase Console > Authentication > Settings > Authorized domains.');
+      } else if (error.code === 'auth/popup-blocked') {
+        setLoginError('Login popup was blocked by your browser. Please allow popups for this site.');
+      } else {
+        setLoginError(error.message || 'Login failed. Please try again.');
       }
       console.error('Login error:', error);
     }
@@ -688,6 +696,15 @@ function StudentPortal() {
     <div className="min-h-screen bg-bg-page font-sans">
       {/* Navigation */}
       <nav className="sticky top-0 h-16 bg-navy shadow-2xl z-[100] px-4 md:px-8 flex items-center justify-between">
+        {loginError && (
+          <div className="absolute top-20 left-1/2 -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-[200] flex items-center gap-2 text-sm font-bold">
+            <AlertCircle size={16} />
+            {loginError}
+            <button onClick={() => setLoginError(null)} className="ml-2 hover:text-white/80">
+              <X size={16} />
+            </button>
+          </div>
+        )}
         <div className="flex items-center gap-4">
           <button 
             onClick={() => setIsMobileMenuOpen(true)}
