@@ -7,7 +7,9 @@ import {
   TrendingUp, 
   Plus,
   Bell,
-  Eye
+  Eye,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -24,6 +26,7 @@ import {
 import { db } from '../firebase';
 import { collection, onSnapshot, query, orderBy, limit, writeBatch, doc, getDocs, addDoc, serverTimestamp, collectionGroup } from 'firebase/firestore';
 import { X, Send } from 'lucide-react';
+import { cn } from '../lib/utils';
 
 import { Link } from 'react-router-dom';
 
@@ -80,6 +83,7 @@ export default function AdminDashboardHome() {
   });
   const [countryStats, setCountryStats] = useState<any[]>([]);
   const [isSeeding, setIsSeeding] = useState(false);
+  const [seedStatus, setSeedStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
   const [announcement, setAnnouncement] = useState({ title: "", message: "", type: "info" });
   const [isSending, setIsSending] = useState(false);
@@ -104,24 +108,37 @@ export default function AdminDashboardHome() {
 
   const handleSeedData = async () => {
     setIsSeeding(true);
+    setSeedStatus('idle');
     try {
       const batch = writeBatch(db);
       
       // Seed Universities
       for (const uni of UNIVERSITIES) {
         const newDoc = doc(collection(db, "universities"));
-        batch.set(newDoc, uni);
+        batch.set(newDoc, {
+          ...uni,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
       }
 
       // Seed Scholarships
       for (const schol of SCHOLARSHIPS) {
         const newDoc = doc(collection(db, "scholarships"));
-        batch.set(newDoc, schol);
+        batch.set(newDoc, {
+          ...schol,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
       }
 
       await batch.commit();
+      setSeedStatus('success');
+      setTimeout(() => setSeedStatus('idle'), 3000);
     } catch (err) {
       console.error("Seeding error:", err);
+      setSeedStatus('error');
+      setTimeout(() => setSeedStatus('idle'), 3000);
     } finally {
       setIsSeeding(false);
     }
@@ -208,9 +225,31 @@ export default function AdminDashboardHome() {
           <button 
             onClick={handleSeedData}
             disabled={isSeeding}
-            className="bg-white border border-[#141414] px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-50 transition-colors flex items-center gap-2 disabled:opacity-50"
+            className={cn(
+              "border px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 disabled:opacity-50",
+              seedStatus === 'success' ? "bg-green-50 border-green-500 text-green-700" :
+              seedStatus === 'error' ? "bg-red-50 border-red-500 text-red-700" :
+              "bg-white border-[#141414] hover:bg-slate-50"
+            )}
           >
-            <Plus size={18} /> {isSeeding ? "Seeding..." : "Seed Initial Data"}
+            {isSeeding ? (
+              <>
+                <div className="w-4 h-4 border-2 border-navy border-t-transparent rounded-full animate-spin" />
+                Seeding...
+              </>
+            ) : seedStatus === 'success' ? (
+              <>
+                <CheckCircle2 size={18} /> Data Seeded!
+              </>
+            ) : seedStatus === 'error' ? (
+              <>
+                <AlertCircle size={18} /> Error!
+              </>
+            ) : (
+              <>
+                <Plus size={18} /> Seed Initial Data
+              </>
+            )}
           </button>
           <button 
             onClick={() => setIsAnnouncementModalOpen(true)}
