@@ -17,7 +17,8 @@ import {
   Search,
   Moon,
   Sun,
-  ChevronRight
+  ChevronRight,
+  ClipboardList
 } from 'lucide-react';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { cn } from '../lib/utils';
@@ -49,9 +50,10 @@ export default function AdminLayout() {
     { icon: <GraduationCap size={20} />, label: "Universities", path: "/admin/universities" },
     { icon: <Award size={20} />, label: "Scholarships", path: "/admin/scholarships" },
     { icon: <Users size={20} />, label: "Students", path: "/admin/students" },
+    { icon: <ClipboardList size={20} />, label: "Applications", path: "/admin/applications" },
+    { icon: <Bell size={20} />, label: "Announcements", path: "/admin/announcements" },
     { icon: <FileText size={20} />, label: "Content", path: "/admin/content" },
     { icon: <Star size={20} />, label: "Reviews", path: "/admin/reviews" },
-    { icon: <Bell size={20} />, label: "Announcements", path: "/admin/announcements" },
     { icon: <BarChart3 size={20} />, label: "Analytics", path: "/admin/analytics" },
     { icon: <Settings size={20} />, label: "Settings", path: "/admin/settings" },
     { icon: <ShieldCheck size={20} />, label: "Admin Users", path: "/admin/users" },

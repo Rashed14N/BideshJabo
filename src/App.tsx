@@ -35,6 +35,10 @@ import AdminLayout from './admin/AdminLayout';
 import AdminDashboardHome from './admin/AdminDashboardHome';
 import AdminLogin from './admin/AdminLogin';
 import UniversityManagement from './admin/UniversityManagement';
+import StudentManagement from './admin/StudentManagement';
+import ScholarshipManagement from './admin/ScholarshipManagement';
+import AnnouncementManagement from './admin/AnnouncementManagement';
+import ApplicationManagement from './admin/ApplicationManagement';
 import { auth, db, loginWithGoogle, logout, onAuthStateChanged, User, OperationType, handleFirestoreError } from './firebase';
 import { doc, onSnapshot, setDoc, collection, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 // --- DATA CONSTANTS ---
@@ -530,6 +534,10 @@ export default function App() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboardHome />} />
           <Route path="universities" element={<UniversityManagement />} />
+          <Route path="students" element={<StudentManagement />} />
+          <Route path="scholarships" element={<ScholarshipManagement />} />
+          <Route path="announcements" element={<AnnouncementManagement />} />
+          <Route path="applications" element={<ApplicationManagement />} />
           <Route path="*" element={<div className="p-8 text-center font-bold text-slate-400">Coming Soon: This module is under development.</div>} />
         </Route>
 

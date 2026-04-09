@@ -8,12 +8,12 @@ import {
   Trash2, 
   Download,
   CheckCircle2,
-  Clock
+  Clock,
+  X
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { db } from '../firebase';
 import { collection, onSnapshot, query, orderBy, deleteDoc, doc, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { X } from 'lucide-react';
 
 export default function UniversityManagement() {
   const [search, setSearch] = useState("");
@@ -90,12 +90,10 @@ export default function UniversityManagement() {
   );
 
   const handleDelete = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this university?")) {
-      try {
-        await deleteDoc(doc(db, "universities", id));
-      } catch (err) {
-        console.error("Error deleting university:", err);
-      }
+    try {
+      await deleteDoc(doc(db, "universities", id));
+    } catch (err) {
+      console.error("Error deleting university:", err);
     }
   };
 

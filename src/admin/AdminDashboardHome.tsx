@@ -22,7 +22,10 @@ import {
   Cell
 } from 'recharts';
 import { db } from '../firebase';
-import { collection, onSnapshot, query, orderBy, limit, writeBatch, doc, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, limit, writeBatch, doc, getDocs, addDoc, serverTimestamp, collectionGroup } from 'firebase/firestore';
+import { X, Send } from 'lucide-react';
+
+import { Link } from 'react-router-dom';
 
 const UNIVERSITIES = [
   {
@@ -77,9 +80,29 @@ export default function AdminDashboardHome() {
   });
   const [countryStats, setCountryStats] = useState<any[]>([]);
   const [isSeeding, setIsSeeding] = useState(false);
+  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
+  const [announcement, setAnnouncement] = useState({ title: "", message: "", type: "info" });
+  const [isSending, setIsSending] = useState(false);
+
+  const handleSendAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSending(true);
+    try {
+      await addDoc(collection(db, "announcements"), {
+        ...announcement,
+        createdAt: serverTimestamp(),
+        active: true
+      });
+      setIsAnnouncementModalOpen(false);
+      setAnnouncement({ title: "", message: "", type: "info" });
+    } catch (err) {
+      console.error("Error sending announcement:", err);
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   const handleSeedData = async () => {
-    if (!window.confirm("This will populate the database with sample universities and scholarships. Continue?")) return;
     setIsSeeding(true);
     try {
       const batch = writeBatch(db);
@@ -97,10 +120,8 @@ export default function AdminDashboardHome() {
       }
 
       await batch.commit();
-      alert("Data seeded successfully!");
     } catch (err) {
       console.error("Seeding error:", err);
-      alert("Failed to seed data.");
     } finally {
       setIsSeeding(false);
     }
@@ -148,11 +169,17 @@ export default function AdminDashboardHome() {
       setStats(prev => ({ ...prev, scholarships: snap.size }));
     });
 
+    // Fetch Total Applications count
+    const unsubApps = onSnapshot(collectionGroup(db, "applications"), (snap) => {
+      setStats(prev => ({ ...prev, totalApps: snap.size }));
+    });
+
     return () => {
       unsubStudents();
       unsubAllStudents();
       unsubUnis();
       unsubSchols();
+      unsubApps();
     };
   }, []);
 
@@ -161,7 +188,7 @@ export default function AdminDashboardHome() {
     { label: "Active Users (7d)", value: stats.totalStudents.toLocaleString(), trend: "0%", up: true, icon: <TrendingUp size={24} /> },
     { label: "Universities", value: stats.universities.toString(), trend: "Real", up: true, icon: <GraduationCap size={24} /> },
     { label: "Scholarships", value: stats.scholarships.toString(), trend: "Real", up: true, icon: <Award size={24} /> },
-    { label: "Applications", value: "0", trend: "0%", up: true, icon: <ClipboardList size={24} /> },
+    { label: "Applications", value: stats.totalApps.toString(), trend: "Real", up: true, icon: <ClipboardList size={24} /> },
     { label: "New Signups", value: stats.totalStudents.toString(), trend: "Today", up: true, icon: <Users size={24} /> },
   ];
 
@@ -185,11 +212,72 @@ export default function AdminDashboardHome() {
           >
             <Plus size={18} /> {isSeeding ? "Seeding..." : "Seed Initial Data"}
           </button>
-          <button className="bg-[#141414] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-800 transition-colors flex items-center gap-2">
+          <button 
+            onClick={() => setIsAnnouncementModalOpen(true)}
+            className="bg-[#141414] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-800 transition-colors flex items-center gap-2"
+          >
             <Bell size={18} /> Send Announcement
           </button>
         </div>
       </div>
+
+      {/* Announcement Modal */}
+      {isAnnouncementModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-xl font-display font-extrabold">Send Global Announcement</h3>
+              <button onClick={() => setIsAnnouncementModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleSendAnnouncement} className="p-6 space-y-4">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase">Title</label>
+                <input 
+                  required 
+                  type="text" 
+                  value={announcement.title} 
+                  onChange={e => setAnnouncement({...announcement, title: e.target.value})} 
+                  placeholder="e.g. New Scholarship Available!"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" 
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase">Type</label>
+                <select 
+                  value={announcement.type} 
+                  onChange={e => setAnnouncement({...announcement, type: e.target.value})}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]"
+                >
+                  <option value="info">Information</option>
+                  <option value="warning">Warning</option>
+                  <option value="success">Success / Update</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase">Message</label>
+                <textarea 
+                  required 
+                  rows={4} 
+                  value={announcement.message} 
+                  onChange={e => setAnnouncement({...announcement, message: e.target.value})} 
+                  placeholder="Type your message here..."
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414] resize-none" 
+                />
+              </div>
+              <div className="pt-4 flex gap-3">
+                <button type="button" onClick={() => setIsAnnouncementModalOpen(false)} className="flex-1 py-3 border border-slate-200 rounded-xl font-bold hover:bg-slate-50">Cancel</button>
+                <button 
+                  type="submit" 
+                  disabled={isSending}
+                  className="flex-1 py-3 bg-[#141414] text-white rounded-xl font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isSending ? "Sending..." : <><Send size={18} /> Send Now</>}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 lg:gap-6">
@@ -268,7 +356,7 @@ export default function AdminDashboardHome() {
       <div className="bg-white border border-[#141414] rounded-2xl overflow-hidden">
         <div className="p-6 border-b border-[#141414] flex items-center justify-between">
           <h3 className="text-lg font-display font-extrabold">Latest Registered Students</h3>
-          <button className="text-sm font-bold text-blue-primary hover:underline">View All Students</button>
+          <Link to="/admin/students" className="text-sm font-bold text-blue-primary hover:underline">View All Students</Link>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
