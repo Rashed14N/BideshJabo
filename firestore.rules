@@ -12,6 +12,12 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         request.auth.token.email == "rashedtech14@gmail.com");
+    }
+
     // ===============================================================
     // Domain Validators
     // ===============================================================
@@ -40,18 +46,34 @@ service cloud.firestore {
 
     // User Profiles
     match /users/{userId} {
-      allow read: if isOwner(userId);
+      allow read: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && isValidUserProfile(request.resource.data);
-      allow update: if isOwner(userId) && isValidUserProfile(request.resource.data);
-      allow delete: if isOwner(userId);
+      allow update: if (isOwner(userId) && isValidUserProfile(request.resource.data)) || isAdmin();
+      allow delete: if isOwner(userId) || isAdmin();
 
       // Applications Subcollection
       match /applications/{appId} {
-        allow read: if isOwner(userId);
+        allow read: if isOwner(userId) || isAdmin();
         allow create: if isOwner(userId) && isValidApplication(request.resource.data);
-        allow update: if isOwner(userId) && isValidApplication(request.resource.data);
-        allow delete: if isOwner(userId);
+        allow update: if (isOwner(userId) && isValidApplication(request.resource.data)) || isAdmin();
+        allow delete: if isOwner(userId) || isAdmin();
       }
+    }
+
+    // Global Collections
+    match /universities/{uniId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /scholarships/{schId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /announcements/{annId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
   }
 }
