@@ -22,7 +22,8 @@ export default function UniversityManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUni, setEditingUni] = useState<any>(null);
   const [formData, setFormData] = useState({
-    name: "", country: "", qsRank: "", tuitionPerYear: "", minCGPA: "", minIELTS: "", status: "Active"
+    name: "", country: "", city: "", qsRank: "", tuitionPerYear: "", minCGPA: "", minIELTS: "", status: "Active",
+    logo: "🎓", intake: "Fall", deadline: "", programs: "", description: ""
   });
 
   useEffect(() => {
@@ -41,16 +42,23 @@ export default function UniversityManagement() {
       setFormData({
         name: uni.name || "",
         country: uni.country || "",
+        city: uni.city || "",
         qsRank: uni.qsRank?.toString() || "",
         tuitionPerYear: uni.tuitionPerYear?.toString() || "",
         minCGPA: uni.minCGPA?.toString() || "",
         minIELTS: uni.minIELTS?.toString() || "",
-        status: uni.status || "Active"
+        status: uni.status || "Active",
+        logo: uni.logo || "🎓",
+        intake: uni.intakes?.[0] || "Fall",
+        deadline: uni.fallDeadline || "",
+        programs: uni.programs?.join(", ") || "",
+        description: uni.description || ""
       });
     } else {
       setEditingUni(null);
       setFormData({
-        name: "", country: "", qsRank: "", tuitionPerYear: "", minCGPA: "", minIELTS: "", status: "Active"
+        name: "", country: "", city: "", qsRank: "", tuitionPerYear: "", minCGPA: "", minIELTS: "", status: "Active",
+        logo: "🎓", intake: "Fall", deadline: "", programs: "", description: ""
       });
     }
     setIsModalOpen(true);
@@ -60,11 +68,19 @@ export default function UniversityManagement() {
     e.preventDefault();
     try {
       const data = {
-        ...formData,
+        name: formData.name,
+        country: formData.country,
+        city: formData.city,
         qsRank: parseInt(formData.qsRank) || 0,
         tuitionPerYear: parseInt(formData.tuitionPerYear) || 0,
         minCGPA: parseFloat(formData.minCGPA) || 0,
         minIELTS: parseFloat(formData.minIELTS) || 0,
+        status: formData.status,
+        logo: formData.logo,
+        intakes: [formData.intake],
+        fallDeadline: formData.deadline,
+        programs: formData.programs.split(",").map(p => p.trim()).filter(p => p),
+        description: formData.description,
         updatedAt: serverTimestamp()
       };
 
@@ -74,7 +90,6 @@ export default function UniversityManagement() {
         await addDoc(collection(db, "universities"), {
           ...data,
           createdAt: serverTimestamp(),
-          programs: [],
           scholarships: []
         });
       }
@@ -246,9 +261,15 @@ export default function UniversityManagement() {
               <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full"><X size={20} /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">University Name</label>
-                <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
+              <div className="grid grid-cols-[80px_1fr] gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Logo</label>
+                  <input type="text" value={formData.logo} onChange={e => setFormData({...formData, logo: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-center text-xl" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">University Name</label>
+                  <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
@@ -256,33 +277,55 @@ export default function UniversityManagement() {
                   <input required type="text" value={formData.country} onChange={e => setFormData({...formData, country: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase">QS Rank</label>
-                  <input type="number" value={formData.qsRank} onChange={e => setFormData({...formData, qsRank: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
+                  <label className="text-xs font-bold text-slate-500 uppercase">City</label>
+                  <input required type="text" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">QS Rank</label>
+                  <input type="number" value={formData.qsRank} onChange={e => setFormData({...formData, qsRank: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
+                </div>
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase">Tuition/Year ($)</label>
                   <input type="number" value={formData.tuitionPerYear} onChange={e => setFormData({...formData, tuitionPerYear: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
                 </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase">Min CGPA</label>
                   <input type="number" step="0.01" value={formData.minCGPA} onChange={e => setFormData({...formData, minCGPA: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase">Min IELTS</label>
                   <input type="number" step="0.5" value={formData.minIELTS} onChange={e => setFormData({...formData, minIELTS: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
                 </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Status</label>
-                  <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]">
-                    <option value="Active">Active</option>
-                    <option value="Draft">Draft</option>
-                    <option value="Hidden">Hidden</option>
+                  <label className="text-xs font-bold text-slate-500 uppercase">Intake</label>
+                  <select value={formData.intake} onChange={e => setFormData({...formData, intake: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]">
+                    <option value="Fall">Fall</option>
+                    <option value="Spring">Spring</option>
+                    <option value="Summer">Summer</option>
                   </select>
                 </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Deadline</label>
+                  <input type="date" value={formData.deadline} onChange={e => setFormData({...formData, deadline: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase">Programs (Comma separated)</label>
+                <input type="text" value={formData.programs} onChange={e => setFormData({...formData, programs: e.target.value})} placeholder="Computer Science, Engineering, Business" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase">Status</label>
+                <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]">
+                  <option value="Active">Active</option>
+                  <option value="Draft">Draft</option>
+                  <option value="Hidden">Hidden</option>
+                </select>
               </div>
               <div className="pt-4 flex gap-3">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 border border-slate-200 rounded-xl font-bold hover:bg-slate-50">Cancel</button>

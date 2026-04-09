@@ -24,7 +24,8 @@ export default function ScholarshipManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSch, setEditingSch] = useState<any>(null);
   const [formData, setFormData] = useState({
-    name: "", country: "", amount: "", type: "Government", deadline: "", degreeLevel: [] as string[], subjects: [] as string[], description: "", link: "", featured: false
+    name: "", country: "", amount: "", type: "Government", deadline: "", degreeLevel: [] as string[], subjects: [] as string[], description: "", link: "", featured: false,
+    minCGPA: "", minIELTS: "", coverage: ""
   });
 
   useEffect(() => {
@@ -55,12 +56,16 @@ export default function ScholarshipManagement() {
         subjects: sch.subjects || [],
         description: sch.description || "",
         link: sch.link || "",
-        featured: sch.featured || false
+        featured: sch.featured || false,
+        minCGPA: sch.minCGPA?.toString() || "",
+        minIELTS: sch.minIELTS?.toString() || "",
+        coverage: sch.coverage?.join(", ") || ""
       });
     } else {
       setEditingSch(null);
       setFormData({
-        name: "", country: "", amount: "", type: "Government", deadline: "", degreeLevel: [], subjects: [], description: "", link: "", featured: false
+        name: "", country: "", amount: "", type: "Government", deadline: "", degreeLevel: [], subjects: [], description: "", link: "", featured: false,
+        minCGPA: "", minIELTS: "", coverage: ""
       });
     }
     setIsModalOpen(true);
@@ -70,8 +75,19 @@ export default function ScholarshipManagement() {
     e.preventDefault();
     try {
       const data = {
-        ...formData,
+        name: formData.name,
+        country: formData.country,
         amount: parseInt(formData.amount) || 0,
+        type: formData.type,
+        deadline: formData.deadline,
+        degreeLevel: formData.degreeLevel,
+        subjects: formData.subjects,
+        description: formData.description,
+        link: formData.link,
+        featured: formData.featured,
+        minCGPA: parseFloat(formData.minCGPA) || 0,
+        minIELTS: parseFloat(formData.minIELTS) || 0,
+        coverage: formData.coverage.split(",").map(c => c.trim()).filter(c => c),
         updatedAt: serverTimestamp()
       };
 
@@ -80,10 +96,7 @@ export default function ScholarshipManagement() {
       } else {
         await addDoc(collection(db, "scholarships"), {
           ...data,
-          createdAt: serverTimestamp(),
-          coverage: ["Full Tuition", "Monthly Stipend"], // Default coverage
-          minCGPA: 3.0,
-          minIELTS: 6.0
+          createdAt: serverTimestamp()
         });
       }
       setIsModalOpen(false);
@@ -263,6 +276,20 @@ export default function ScholarshipManagement() {
                   <label className="text-xs font-bold text-slate-500 uppercase">Deadline</label>
                   <input type="date" value={formData.deadline} onChange={e => setFormData({...formData, deadline: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
                 </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Min CGPA</label>
+                  <input type="number" step="0.01" value={formData.minCGPA} onChange={e => setFormData({...formData, minCGPA: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Min IELTS</label>
+                  <input type="number" step="0.5" value={formData.minIELTS} onChange={e => setFormData({...formData, minIELTS: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase">Coverage (Comma separated)</label>
+                <input type="text" value={formData.coverage} onChange={e => setFormData({...formData, coverage: e.target.value})} placeholder="Full Tuition, Monthly Stipend, Travel" className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-500 uppercase">Degree Levels</label>
