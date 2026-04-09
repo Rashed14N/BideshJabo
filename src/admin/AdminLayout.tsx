@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { cn } from '../lib/utils';
+import Logo from '../components/Logo';
 
 export default function AdminLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -60,8 +61,8 @@ export default function AdminLayout() {
     { icon: <History size={20} />, label: "Activity Log", path: "/admin/logs" },
   ];
 
-  if (!admin) return <div className="h-screen w-screen flex items-center justify-center bg-slate-50">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-navy"></div>
+  if (!admin) return <div className="h-screen w-screen flex items-center justify-center bg-slate-50 dark:bg-[#141414]">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-navy dark:border-gold"></div>
   </div>;
 
   return (
@@ -76,15 +77,18 @@ export default function AdminLayout() {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-[#141414] transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0",
+        "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-[#1A1A1A] border-r border-[#141414] dark:border-slate-700 transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0",
         !isSidebarOpen && "-translate-x-full lg:w-20"
       )}>
         <div className="h-full flex flex-col">
-          <div className="p-6 border-b border-[#141414] flex items-center justify-between">
-            <span className={cn("font-display font-extrabold text-xl tracking-tighter", !isSidebarOpen && "lg:hidden")}>
-              UniPath <span className="text-gold">Admin</span>
-            </span>
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-1 hover:bg-slate-100 rounded">
+          <div className="p-6 border-b border-[#141414] dark:border-slate-700 flex items-center justify-between">
+            <Logo 
+              iconSize={24} 
+              textSize="text-xl" 
+              showText={isSidebarOpen || window.innerWidth < 1024} 
+              className={cn(!isSidebarOpen && "lg:justify-center")}
+            />
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded">
               {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
@@ -100,8 +104,8 @@ export default function AdminLayout() {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                   location.pathname === item.path 
-                    ? "bg-[#141414] text-white" 
-                    : "hover:bg-slate-100"
+                    ? "bg-[#141414] dark:bg-gold dark:text-[#141414] text-white" 
+                    : "hover:bg-slate-100 dark:hover:bg-slate-800"
                 )}
               >
                 {item.icon}
@@ -110,10 +114,10 @@ export default function AdminLayout() {
             ))}
           </nav>
 
-          <div className="p-4 border-t border-[#141414]">
+          <div className="p-4 border-t border-[#141414] dark:border-slate-700">
             <button 
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
             >
               <LogOut size={20} />
               {isSidebarOpen && <span>Logout</span>}
@@ -125,11 +129,11 @@ export default function AdminLayout() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header */}
-        <header className="h-16 bg-white border-b border-[#141414] flex items-center justify-between px-4 lg:px-8">
+        <header className="h-16 bg-white dark:bg-[#1A1A1A] border-b border-[#141414] dark:border-slate-700 flex items-center justify-between px-4 lg:px-8">
           <div className="flex items-center gap-4 flex-1">
             <button 
               onClick={() => setIsSidebarOpen(true)}
-              className={cn("p-2 hover:bg-slate-100 rounded-lg lg:hidden", isSidebarOpen && "hidden")}
+              className={cn("p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg lg:hidden", isSidebarOpen && "hidden")}
             >
               <Menu size={20} />
             </button>
@@ -138,24 +142,24 @@ export default function AdminLayout() {
               <input 
                 type="text" 
                 placeholder="Search everything..." 
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#141414]"
+                className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white"
               />
             </div>
           </div>
 
           <div className="flex items-center gap-2 lg:gap-4">
-            <button className="p-2 hover:bg-slate-100 rounded-full sm:hidden">
+            <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full sm:hidden">
               <Search size={20} />
             </button>
-            <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 hover:bg-slate-100 rounded-full">
-              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+            <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
+              {isDarkMode ? <Sun size={20} className="text-gold" /> : <Moon size={20} />}
             </button>
-            <div className="flex items-center gap-3 pl-2 lg:pl-4 border-l border-slate-200">
+            <div className="flex items-center gap-3 pl-2 lg:pl-4 border-l border-slate-200 dark:border-slate-700">
               <div className="text-right hidden md:block">
                 <p className="text-sm font-bold leading-none">{admin.email.split('@')[0]}</p>
                 <p className="text-[10px] text-slate-500 font-mono uppercase mt-1">Admin</p>
               </div>
-              <div className="w-8 h-8 lg:w-10 lg:h-10 bg-[#141414] rounded-full flex items-center justify-center text-white font-bold text-sm">
+              <div className="w-8 h-8 lg:w-10 lg:h-10 bg-[#141414] dark:bg-gold dark:text-[#141414] rounded-full flex items-center justify-center text-white font-bold text-sm">
                 {admin.email[0].toUpperCase()}
               </div>
             </div>
@@ -165,7 +169,7 @@ export default function AdminLayout() {
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-8">
           <div className="max-w-7xl mx-auto">
-            <Outlet />
+            <Outlet context={{ isDarkMode }} />
           </div>
         </main>
       </div>

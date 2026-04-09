@@ -41,6 +41,7 @@ import AnnouncementManagement from './admin/AnnouncementManagement';
 import ApplicationManagement from './admin/ApplicationManagement';
 import { auth, db, loginWithGoogle, logout, onAuthStateChanged, User, OperationType, handleFirestoreError } from './firebase';
 import { doc, onSnapshot, setDoc, collection, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import Logo from './components/Logo';
 // --- DATA CONSTANTS ---
 
 const UNIVERSITIES = [
@@ -216,7 +217,7 @@ const SCHOLARSHIPS = [
   }
 ];
 
-// --- ALGORITHMS ---
+// --- UTILS ---
 
 function calculateMatchScore(profile: any, university: any) {
   let score = 0;
@@ -556,6 +557,7 @@ function StudentPortal() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [universities, setUniversities] = useState<any[]>(UNIVERSITIES);
   const [scholarships, setScholarships] = useState<any[]>(SCHOLARSHIPS);
+  const [loading, setLoading] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -566,6 +568,10 @@ function StudentPortal() {
         const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         setUniversities(data);
       }
+      setLoading(false);
+    }, (err) => {
+      console.error("Unis Fetch Error:", err);
+      setLoading(false);
     });
 
     const unsubSchols = onSnapshot(collection(db, "scholarships"), (snap) => {
@@ -718,7 +724,7 @@ function StudentPortal() {
       <div className="min-h-screen bg-navy flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-12 h-12 border-4 border-gold border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-white font-display font-bold">Loading UniPath...</p>
+          <p className="text-white font-display font-bold">Loading Bidesh Jabo...</p>
         </div>
       </div>
     );
@@ -751,9 +757,7 @@ function StudentPortal() {
               navigate("/");
             }}
           >
-            <span className="text-xl md:text-2xl font-display font-extrabold text-white">
-              🎓 Uni<span className="text-gold">Path</span> BD
-            </span>
+            <Logo iconSize={28} textSize="text-xl md:text-2xl text-white" />
           </div>
         </div>
 
@@ -825,9 +829,7 @@ function StudentPortal() {
               className="fixed inset-y-0 left-0 w-[280px] bg-navy z-[200] md:hidden shadow-2xl flex flex-col"
             >
               <div className="p-6 border-b border-white/10 flex items-center justify-between">
-                <span className="text-xl font-display font-extrabold text-white">
-                  🎓 Uni<span className="text-gold">Path</span>
-                </span>
+                <Logo iconSize={24} textSize="text-xl text-white" />
                 <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-slate-400 hover:text-white">
                   <X size={24} />
                 </button>
@@ -862,7 +864,7 @@ function StudentPortal() {
 
               <div className="p-6 border-t border-white/10">
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest text-center">
-                  UniPath BD · Version 1.0.0
+                  Bidesh Jabo · Version 1.0.0
                 </p>
               </div>
             </motion.div>
@@ -939,7 +941,12 @@ function StudentPortal() {
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-8">
-        {!user && page !== "dashboard" ? (
+        {!isAuthReady || (loading && universities.length === 0) ? (
+          <div className="flex flex-col items-center justify-center py-32 space-y-4">
+            <Loader2 className="animate-spin text-blue-primary" size={48} />
+            <p className="text-muted font-bold animate-pulse">Loading Portal...</p>
+          </div>
+        ) : !user && page !== "dashboard" ? (
           <div className="bg-white p-12 rounded-3xl border border-border-main text-center space-y-6 shadow-xl max-w-lg mx-auto mt-20">
             <div className="w-20 h-20 bg-gold/10 rounded-full flex items-center justify-center mx-auto">
               <LogIn size={40} className="text-gold" />
@@ -1297,12 +1304,19 @@ function MatchPage({ profile, setPage, onAddApp, universities }: { profile: any,
   const [filters, setFilters] = useState({ country: "All", degree: "All", budget: "Any", sort: "score" });
   const [selectedUni, setSelectedUni] = useState<any>(null);
 
+  console.log("MatchPage rendering with profile:", profile);
+  console.log("Universities count:", universities?.length);
+
   const filteredUnis = useMemo(() => {
-    return universities
+    return (universities || [])
       .map(u => ({ ...u, match: calculateMatchScore(profile, u) }))
       .filter(u => {
         const countryMatch = filters.country === "All" || u.country === filters.country;
-        const degreeMatch = filters.degree === "All" || u.degreeLevel?.includes(filters.degree);
+        
+        // Safety check for degreeLevel
+        const degreeLevels = Array.isArray(u.degreeLevel) ? u.degreeLevel : [u.degreeLevel];
+        const degreeMatch = filters.degree === "All" || degreeLevels.includes(filters.degree);
+        
         const totalCost = (u.tuitionPerYear || 0) + (u.livingCost || 0);
         const budgetMatch = filters.budget === "Any" || 
           (filters.budget === "<15k" && totalCost < 15000) ||
@@ -1317,7 +1331,7 @@ function MatchPage({ profile, setPage, onAddApp, universities }: { profile: any,
       });
   }, [profile, filters, universities]);
 
-  const countries = ["All", ...new Set(universities.map(u => u.country))];
+  const countries = ["All", ...new Set((universities || []).map(u => u.country))];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -1370,7 +1384,7 @@ function MatchPage({ profile, setPage, onAddApp, universities }: { profile: any,
           </div>
         </div>
         <div className="text-xs font-bold text-muted pt-2 lg:pt-0 border-t lg:border-none border-slate-100">
-          Showing {filteredUnis.length} universities
+          Showing {(filteredUnis || []).length} universities
         </div>
       </div>
 
@@ -1436,6 +1450,19 @@ function MatchPage({ profile, setPage, onAddApp, universities }: { profile: any,
             </div>
           </div>
         ))}
+
+        {filteredUnis.length === 0 && (
+          <div className="col-span-full py-20 text-center space-y-4 bg-white rounded-3xl border border-dashed border-slate-200">
+            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
+              <Search className="text-slate-300" size={32} />
+            </div>
+            <h3 className="text-xl font-display font-extrabold text-navy">No matches found</h3>
+            <p className="text-muted font-medium max-w-xs mx-auto">Try adjusting your filters or completing your profile to see more results.</p>
+            <button onClick={() => setFilters({ country: "All", degree: "All", budget: "Any", sort: "score" })} className="text-blue-primary font-bold hover:underline">
+              Reset all filters
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Detail Modal */}

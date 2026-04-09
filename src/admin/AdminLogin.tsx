@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, LogIn, Loader2, AlertCircle } from 'lucide-react';
 import { auth, loginWithGoogle } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import Logo from '../components/Logo';
 
 export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
@@ -53,10 +54,10 @@ export default function AdminLogin() {
       <div className="max-w-md w-full bg-white border-2 border-[#141414] rounded-3xl p-10 shadow-[8px_8px_0px_0px_#141414] space-y-8">
         <div className="text-center space-y-4">
           <div className="w-20 h-20 bg-[#141414] rounded-2xl flex items-center justify-center mx-auto shadow-[4px_4px_0px_0px_#F27D26]">
-            <ShieldCheck size={40} className="text-white" />
+            <Logo showText={false} iconSize={40} />
           </div>
           <h1 className="text-3xl font-display font-extrabold tracking-tight">Admin Access</h1>
-          <p className="text-slate-500 font-medium">Secure portal for UniPath BD administrators.</p>
+          <p className="text-slate-500 font-medium">Secure portal for Bidesh Jabo administrators.</p>
         </div>
 
         {error && (

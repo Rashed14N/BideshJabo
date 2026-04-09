@@ -28,7 +28,7 @@ import { collection, onSnapshot, query, orderBy, limit, writeBatch, doc, getDocs
 import { X, Send } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-import { Link } from 'react-router-dom';
+import { Link, useOutletContext } from 'react-router-dom';
 
 const UNIVERSITIES = [
   {
@@ -71,9 +71,13 @@ const SCHOLARSHIPS = [
   }
 ];
 
-const COLORS = ['#141414', '#F27D26', '#3b82f6', '#10b981', '#f59e0b'];
-
 export default function AdminDashboardHome() {
+  const { isDarkMode } = useOutletContext<{ isDarkMode: boolean }>();
+  
+  const COLORS = isDarkMode 
+    ? ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6'] 
+    : ['#141414', '#F27D26', '#3b82f6', '#10b981', '#f59e0b'];
+
   const [students, setStudents] = useState<any[]>([]);
   const [stats, setStats] = useState({
     totalStudents: 0,
@@ -244,14 +248,14 @@ export default function AdminDashboardHome() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-display font-extrabold tracking-tight">Dashboard Overview</h1>
-          <p className="text-slate-500 text-sm font-medium">Welcome back, Admin. Here's what's happening today.</p>
+          <h1 className="text-2xl font-display font-extrabold tracking-tight dark:text-white">Dashboard Overview</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Welcome back, Admin. Here's what's happening today.</p>
         </div>
         <div className="flex gap-3">
           <button 
             onClick={handleClearData}
             disabled={isSeeding}
-            className="border border-red-200 bg-red-50 text-red-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-100 transition-all flex items-center gap-2 disabled:opacity-50"
+            className="border border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-100 dark:hover:bg-red-900/20 transition-all flex items-center gap-2 disabled:opacity-50"
           >
             <X size={18} /> Clear Data
           </button>
@@ -260,9 +264,9 @@ export default function AdminDashboardHome() {
             disabled={isSeeding}
             className={cn(
               "border px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 disabled:opacity-50",
-              seedStatus === 'success' ? "bg-green-50 border-green-500 text-green-700" :
-              seedStatus === 'error' ? "bg-red-50 border-red-500 text-red-700" :
-              "bg-white border-[#141414] hover:bg-slate-50"
+              seedStatus === 'success' ? "bg-green-50 dark:bg-green-900/10 border-green-500 text-green-700 dark:text-green-400" :
+              seedStatus === 'error' ? "bg-red-50 dark:bg-red-900/10 border-red-500 text-red-700 dark:text-red-400" :
+              "bg-white dark:bg-[#1A1A1A] border-[#141414] dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 dark:text-white"
             )}
           >
             {isSeeding ? (
@@ -286,7 +290,7 @@ export default function AdminDashboardHome() {
           </button>
           <button 
             onClick={() => setIsAnnouncementModalOpen(true)}
-            className="bg-[#141414] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-800 transition-colors flex items-center gap-2"
+            className="bg-[#141414] dark:bg-gold dark:text-[#141414] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-800 dark:hover:bg-gold-hover transition-colors flex items-center gap-2"
           >
             <Bell size={18} /> Send Announcement
           </button>
@@ -296,10 +300,10 @@ export default function AdminDashboardHome() {
       {/* Announcement Modal */}
       {isAnnouncementModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="text-xl font-display font-extrabold">Send Global Announcement</h3>
-              <button onClick={() => setIsAnnouncementModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full"><X size={20} /></button>
+          <div className="bg-white dark:bg-[#1A1A1A] w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col border dark:border-slate-700">
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <h3 className="text-xl font-display font-extrabold dark:text-white">Send Global Announcement</h3>
+              <button onClick={() => setIsAnnouncementModalOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full dark:text-white"><X size={20} /></button>
             </div>
             <form onSubmit={handleSendAnnouncement} className="p-6 space-y-4">
               <div className="space-y-1">
@@ -310,7 +314,7 @@ export default function AdminDashboardHome() {
                   value={announcement.title} 
                   onChange={e => setAnnouncement({...announcement, title: e.target.value})} 
                   placeholder="e.g. New Scholarship Available!"
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" 
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white" 
                 />
               </div>
               <div className="space-y-1">
@@ -318,11 +322,11 @@ export default function AdminDashboardHome() {
                 <select 
                   value={announcement.type} 
                   onChange={e => setAnnouncement({...announcement, type: e.target.value})}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]"
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white"
                 >
-                  <option value="info">Information</option>
-                  <option value="warning">Warning</option>
-                  <option value="success">Success / Update</option>
+                  <option value="info" className="dark:bg-[#1A1A1A]">Information</option>
+                  <option value="warning" className="dark:bg-[#1A1A1A]">Warning</option>
+                  <option value="success" className="dark:bg-[#1A1A1A]">Success / Update</option>
                 </select>
               </div>
               <div className="space-y-1">
@@ -333,15 +337,15 @@ export default function AdminDashboardHome() {
                   value={announcement.message} 
                   onChange={e => setAnnouncement({...announcement, message: e.target.value})} 
                   placeholder="Type your message here..."
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414] resize-none" 
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white resize-none" 
                 />
               </div>
               <div className="pt-4 flex gap-3">
-                <button type="button" onClick={() => setIsAnnouncementModalOpen(false)} className="flex-1 py-3 border border-slate-200 rounded-xl font-bold hover:bg-slate-50">Cancel</button>
+                <button type="button" onClick={() => setIsAnnouncementModalOpen(false)} className="flex-1 py-3 border border-slate-200 dark:border-slate-700 rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-slate-800 dark:text-white">Cancel</button>
                 <button 
                   type="submit" 
                   disabled={isSending}
-                  className="flex-1 py-3 bg-[#141414] text-white rounded-xl font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="flex-1 py-3 bg-[#141414] dark:bg-gold dark:text-[#141414] text-white rounded-xl font-bold hover:bg-slate-800 dark:hover:bg-gold-hover transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {isSending ? "Sending..." : <><Send size={18} /> Send Now</>}
                 </button>
@@ -354,17 +358,26 @@ export default function AdminDashboardHome() {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 lg:gap-6">
         {dashboardStats.map((stat, i) => (
-          <div key={i} className="bg-white p-4 lg:p-6 border border-[#141414] rounded-xl shadow-[4px_4px_0px_0px_#141414]">
+          <div key={i} className={cn(
+            "bg-white dark:bg-[#1A1A1A] p-4 lg:p-6 border border-[#141414] dark:border-slate-700 rounded-xl transition-all",
+            isDarkMode ? "shadow-[4px_4px_0px_0px_#f59e0b]" : "shadow-[4px_4px_0px_0px_#141414]"
+          )}>
             <div className="flex items-center justify-between mb-3 lg:mb-4">
-              <div className="p-1.5 lg:p-2 bg-slate-50 rounded-lg">
-                {React.cloneElement(stat.icon as React.ReactElement, { size: 18 })}
+              <div className="p-1.5 lg:p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                {React.cloneElement(stat.icon as React.ReactElement, { 
+                  size: 18, 
+                  className: isDarkMode ? "text-gold" : "text-[#141414]" 
+                })}
               </div>
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${stat.up ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+              <span className={cn(
+                "text-[10px] font-bold px-1.5 py-0.5 rounded-full",
+                stat.up ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+              )}>
                 {stat.trend}
               </span>
             </div>
-            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">{stat.label}</p>
-            <h3 className="text-lg lg:text-2xl font-display font-extrabold mt-1">{stat.value}</h3>
+            <p className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider">{stat.label}</p>
+            <h3 className="text-lg lg:text-2xl font-display font-extrabold mt-1 dark:text-white">{stat.value}</h3>
           </div>
         ))}
       </div>
@@ -372,26 +385,34 @@ export default function AdminDashboardHome() {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Registration Chart */}
-        <div className="bg-white p-8 border border-[#141414] rounded-2xl">
-          <h3 className="text-lg font-display font-extrabold mb-6">User Registrations (30 Days)</h3>
+        <div className="bg-white dark:bg-[#1A1A1A] p-8 border border-[#141414] dark:border-slate-700 rounded-2xl shadow-sm">
+          <h3 className="text-lg font-display font-extrabold mb-6 dark:text-white">User Registrations (30 Days)</h3>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={regData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? '#334155' : '#f1f5f9'} opacity={isDarkMode ? 0.5 : 1} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: isDarkMode ? '#94a3b8' : '#64748b' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: isDarkMode ? '#94a3b8' : '#64748b' }} />
                 <Tooltip 
-                  contentStyle={{ borderRadius: '12px', border: '1px solid #141414', boxShadow: '4px 4px 0px 0px #141414' }}
+                  contentStyle={{ 
+                    borderRadius: '12px', 
+                    border: isDarkMode ? '1px solid #334155' : '1px solid #141414', 
+                    boxShadow: isDarkMode ? '4px 4px 0px 0px #f59e0b' : '4px 4px 0px 0px #141414', 
+                    backgroundColor: isDarkMode ? '#1A1A1A' : '#fff', 
+                    color: isDarkMode ? '#fff' : '#141414' 
+                  }}
+                  itemStyle={{ color: isDarkMode ? '#fff' : '#141414' }}
+                  cursor={{ stroke: isDarkMode ? '#334155' : '#f1f5f9', strokeWidth: 2 }}
                 />
-                <Line type="monotone" dataKey="users" stroke="#141414" strokeWidth={3} dot={{ r: 4, fill: '#141414' }} activeDot={{ r: 6 }} />
+                <Line type="monotone" dataKey="users" stroke={isDarkMode ? '#f59e0b' : '#141414'} strokeWidth={3} dot={{ r: 4, fill: isDarkMode ? '#f59e0b' : '#141414' }} activeDot={{ r: 6 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Country Pie Chart */}
-        <div className="bg-white p-8 border border-[#141414] rounded-2xl">
-          <h3 className="text-lg font-display font-extrabold mb-6">Students by Target Country</h3>
+        <div className="bg-white dark:bg-[#1A1A1A] p-8 border border-[#141414] dark:border-slate-700 rounded-2xl shadow-sm">
+          <h3 className="text-lg font-display font-extrabold mb-6 dark:text-white">Students by Target Country</h3>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -403,13 +424,24 @@ export default function AdminDashboardHome() {
                   outerRadius={100}
                   paddingAngle={5}
                   dataKey="value"
+                  stroke={isDarkMode ? '#1A1A1A' : '#fff'}
                 >
                   {countryStats.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke={isDarkMode ? '#1A1A1A' : '#fff'} />
                   ))}
-                  {countryStats.length === 0 && <Cell fill="#e2e8f0" />}
+                  {countryStats.length === 0 && <Cell fill={isDarkMode ? '#334155' : '#e2e8f0'} />}
                 </Pie>
-                <Tooltip />
+                <Tooltip 
+                  contentStyle={{ 
+                    borderRadius: '12px', 
+                    border: isDarkMode ? '1px solid #334155' : '1px solid #141414', 
+                    boxShadow: isDarkMode ? '4px 4px 0px 0px #f59e0b' : '4px 4px 0px 0px #141414', 
+                    backgroundColor: isDarkMode ? '#1A1A1A' : '#fff', 
+                    color: isDarkMode ? '#fff' : '#141414' 
+                  }}
+                  itemStyle={{ color: isDarkMode ? '#fff' : '#141414' }}
+                  cursor={{ fill: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)' }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -417,29 +449,35 @@ export default function AdminDashboardHome() {
             {countryStats.map((entry, index) => (
               <div key={index} className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                <span className="text-xs font-bold text-slate-600">{entry.name}</span>
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{entry.name}</span>
               </div>
             ))}
+            {countryStats.length === 0 && (
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-slate-200 dark:bg-slate-700" />
+                <span className="text-xs font-bold text-slate-400">No Data</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Latest Students Table */}
-      <div className="bg-white border border-[#141414] rounded-2xl overflow-hidden">
-        <div className="p-6 border-b border-[#141414] flex items-center justify-between">
-          <h3 className="text-lg font-display font-extrabold">Latest Registered Students</h3>
-          <Link to="/admin/students" className="text-sm font-bold text-blue-primary hover:underline">View All Students</Link>
+      <div className="bg-white dark:bg-[#1A1A1A] border border-[#141414] dark:border-slate-700 rounded-2xl overflow-hidden shadow-sm">
+        <div className="p-6 border-b border-[#141414] dark:border-slate-700 flex items-center justify-between">
+          <h3 className="text-lg font-display font-extrabold dark:text-white">Latest Registered Students</h3>
+          <Link to="/admin/students" className="text-sm font-bold text-blue-primary dark:text-gold hover:underline">View All Students</Link>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 border-b border-[#141414]">
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Student</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-widest hidden sm:table-cell">Target</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-widest hidden md:table-cell">CGPA</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Profile %</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-widest hidden lg:table-cell">Status</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Action</th>
+              <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-[#141414] dark:border-slate-700">
+                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Student</th>
+                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:table-cell">Target</th>
+                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden md:table-cell">CGPA</th>
+                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Profile %</th>
+                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden lg:table-cell">Status</th>
+                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -449,34 +487,34 @@ export default function AdminDashboardHome() {
                 const pct = Math.round((filled / fields.length) * 100);
 
                 return (
-                  <tr key={student.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                  <tr key={student.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-[#141414] text-white rounded-full shrink-0 flex items-center justify-center font-bold text-xs">
+                        <div className="w-8 h-8 bg-[#141414] dark:bg-gold dark:text-[#141414] text-white rounded-full shrink-0 flex items-center justify-center font-bold text-xs">
                           {student.fullName?.[0] || student.email?.[0]?.toUpperCase() || "?"}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-bold truncate">{student.fullName || "Unnamed Student"}</p>
-                          <p className="text-[10px] text-slate-500 truncate">{student.email}</p>
+                          <p className="text-sm font-bold truncate dark:text-white">{student.fullName || "Unnamed Student"}</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{student.email}</p>
                         </div>
                       </div>
                     </td>
                     <td className="p-4 hidden sm:table-cell">
-                      <p className="text-sm font-medium">{student.targetDegree || "N/A"}</p>
-                      <p className="text-xs text-slate-500">{student.targetCountries?.join(', ') || "N/A"}</p>
+                      <p className="text-sm font-medium dark:text-slate-300">{student.targetDegree || "N/A"}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{student.targetCountries?.join(', ') || "N/A"}</p>
                     </td>
-                    <td className="p-4 text-sm font-mono hidden md:table-cell">{student.cgpa || "0.0"} / {student.cgpaScale || "4.0"}</td>
+                    <td className="p-4 text-sm font-mono hidden md:table-cell dark:text-slate-300">{student.cgpa || "0.0"} / {student.cgpaScale || "4.0"}</td>
                     <td className="p-4">
-                      <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                      <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
                         <div className="bg-gold h-full" style={{ width: `${pct}%` }} />
                       </div>
-                      <p className="text-[10px] font-bold text-slate-500 mt-1">{pct}%</p>
+                      <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1">{pct}% Profile Complete</p>
                     </td>
                     <td className="p-4 hidden lg:table-cell">
-                      <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">Active</span>
+                      <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">Active</span>
                     </td>
                     <td className="p-4">
-                      <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-[#141414]">
+                      <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-[#141414] dark:hover:text-gold">
                         <Eye size={18} />
                       </button>
                     </td>
