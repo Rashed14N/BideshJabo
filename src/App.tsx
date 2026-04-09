@@ -42,7 +42,179 @@ import ApplicationManagement from './admin/ApplicationManagement';
 import { auth, db, loginWithGoogle, logout, onAuthStateChanged, User, OperationType, handleFirestoreError } from './firebase';
 import { doc, onSnapshot, setDoc, collection, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 // --- DATA CONSTANTS ---
-// (Removed hardcoded constants to use Firestore data exclusively)
+
+const UNIVERSITIES = [
+  {
+    id: 1, name: "University of Toronto", shortName: "UofT", country: "Canada", city: "Toronto",
+    qsRank: 21, acceptanceRate: 43, tuitionPerYear: 35000, livingCost: 15000,
+    minCGPA: 3.5, minIELTS: 6.5, minTOEFL: 93, greRequired: false, workExpRequired: false,
+    programs: ["Computer Science", "Engineering", "Business", "Life Sciences"],
+    degreeLevel: ["Bachelor", "Master", "PhD"],
+    scholarships: ["Lester B. Pearson International Scholarship"],
+    scholarshipAmount: 40000, postStudyVisa: true, postStudyYears: 3,
+    employmentRate: 92, avgSalary: 75000, bangladeshiCommunity: "Large",
+    partTimeAllowed: true, partTimeHours: 20, logo: "🍁", tier: 1,
+    intakes: ["Fall"], fallDeadline: "2025-01-15", springDeadline: null,
+    tags: ["Research", "Tech Hub", "Prestige"]
+  },
+  {
+    id: 2, name: "University of Melbourne", shortName: "Unimelb", country: "Australia", city: "Melbourne",
+    qsRank: 33, acceptanceRate: 70, tuitionPerYear: 28000, livingCost: 18000,
+    minCGPA: 3.0, minIELTS: 6.5, minTOEFL: 79, greRequired: false, workExpRequired: false,
+    programs: ["Architecture", "Arts", "Biomedicine", "Commerce"],
+    degreeLevel: ["Bachelor", "Master", "PhD"],
+    scholarships: ["Melbourne International Undergraduate Scholarship"],
+    scholarshipAmount: 10000, postStudyVisa: true, postStudyYears: 2,
+    employmentRate: 88, avgSalary: 68000, bangladeshiCommunity: "Medium",
+    partTimeAllowed: true, partTimeHours: 24, logo: "🦘", tier: 1,
+    intakes: ["Fall", "Spring"], fallDeadline: "2025-05-31", springDeadline: "2024-10-31",
+    tags: ["Global", "Culture", "Innovation"]
+  },
+  {
+    id: 3, name: "TU Munich", shortName: "TUM", country: "Germany", city: "Munich",
+    qsRank: 37, acceptanceRate: 8, tuitionPerYear: 500, livingCost: 12000,
+    minCGPA: 3.3, minIELTS: 7.0, minTOEFL: 88, greRequired: true, workExpRequired: false,
+    programs: ["Informatics", "Mechanical Engineering", "Physics", "Management"],
+    degreeLevel: ["Master", "PhD"],
+    scholarships: ["DAAD Scholarship"],
+    scholarshipAmount: 12000, postStudyVisa: true, postStudyYears: 1.5,
+    employmentRate: 95, avgSalary: 62000, bangladeshiCommunity: "Medium",
+    partTimeAllowed: true, partTimeHours: 20, logo: "🇩🇪", tier: 1,
+    intakes: ["Fall", "Spring"], fallDeadline: "2025-05-31", springDeadline: "2024-11-30",
+    tags: ["Engineering", "Low Tuition", "Industry"]
+  },
+  {
+    id: 4, name: "University of British Columbia", shortName: "UBC", country: "Canada", city: "Vancouver",
+    qsRank: 46, acceptanceRate: 52, tuitionPerYear: 32000, livingCost: 16000,
+    minCGPA: 3.2, minIELTS: 6.5, minTOEFL: 90, greRequired: false, workExpRequired: false,
+    programs: ["Sustainability", "Forestry", "Computer Science", "Economics"],
+    degreeLevel: ["Bachelor", "Master", "PhD"],
+    scholarships: ["International Major Entrance Scholarship"],
+    scholarshipAmount: 20000, postStudyVisa: true, postStudyYears: 3,
+    employmentRate: 89, avgSalary: 70000, bangladeshiCommunity: "Large",
+    partTimeAllowed: true, partTimeHours: 20, logo: "🌲", tier: 1,
+    intakes: ["Fall"], fallDeadline: "2025-01-15", springDeadline: null,
+    tags: ["Nature", "Research", "Diverse"]
+  },
+  {
+    id: 5, name: "University of Manchester", shortName: "Manchester", country: "UK", city: "Manchester",
+    qsRank: 32, acceptanceRate: 56, tuitionPerYear: 27000, livingCost: 14000,
+    minCGPA: 3.0, minIELTS: 6.5, minTOEFL: 90, greRequired: false, workExpRequired: false,
+    programs: ["Engineering", "Humanities", "Social Sciences", "Business"],
+    degreeLevel: ["Bachelor", "Master", "PhD"],
+    scholarships: ["Global Futures Scholarship"],
+    scholarshipAmount: 5000, postStudyVisa: true, postStudyYears: 2,
+    employmentRate: 91, avgSalary: 55000, bangladeshiCommunity: "Large",
+    partTimeAllowed: true, partTimeHours: 20, logo: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", tier: 1,
+    intakes: ["Fall"], fallDeadline: "2025-06-30", springDeadline: null,
+    tags: ["Heritage", "Urban", "Science"]
+  },
+  {
+    id: 6, name: "NUS Singapore", shortName: "NUS", country: "Singapore", city: "Singapore",
+    qsRank: 8, acceptanceRate: 5, tuitionPerYear: 18000, livingCost: 14000,
+    minCGPA: 3.6, minIELTS: 6.5, minTOEFL: 92, greRequired: true, workExpRequired: true,
+    programs: ["Computing", "Engineering", "Medicine", "Public Policy"],
+    degreeLevel: ["Bachelor", "Master", "PhD"],
+    scholarships: ["ASEAN Undergraduate Scholarship", "NUS Research Scholarship"],
+    scholarshipAmount: 20000, postStudyVisa: true, postStudyYears: 1,
+    employmentRate: 94, avgSalary: 60000, bangladeshiCommunity: "Small",
+    partTimeAllowed: true, partTimeHours: 16, logo: "🦁", tier: 1,
+    intakes: ["Fall", "Spring"], fallDeadline: "2025-02-21", springDeadline: "2024-09-30",
+    tags: ["Elite", "Asia Hub", "Tech"]
+  },
+  {
+    id: 7, name: "University of Amsterdam", shortName: "UvA", country: "Netherlands", city: "Amsterdam",
+    qsRank: 53, acceptanceRate: 4, tuitionPerYear: 14000, livingCost: 13000,
+    minCGPA: 3.0, minIELTS: 6.5, minTOEFL: 92, greRequired: false, workExpRequired: false,
+    programs: ["Psychology", "Communication Science", "Economics", "Law"],
+    degreeLevel: ["Bachelor", "Master"],
+    scholarships: ["Holland Scholarship"],
+    scholarshipAmount: 5000, postStudyVisa: true, postStudyYears: 1,
+    employmentRate: 87, avgSalary: 52000, bangladeshiCommunity: "Small",
+    partTimeAllowed: true, partTimeHours: 16, logo: "🌷", tier: 2,
+    intakes: ["Fall"], fallDeadline: "2025-04-01", springDeadline: null,
+    tags: ["Creative", "International", "Liberal"]
+  },
+  {
+    id: 8, name: "Monash University", shortName: "Monash", country: "Australia", city: "Melbourne",
+    qsRank: 57, acceptanceRate: 40, tuitionPerYear: 24000, livingCost: 17000,
+    minCGPA: 2.8, minIELTS: 6.0, minTOEFL: 79, greRequired: false, workExpRequired: false,
+    programs: ["Nursing", "Pharmacy", "Education", "Engineering"],
+    degreeLevel: ["Bachelor", "Master", "PhD"],
+    scholarships: ["Monash International Merit Scholarship"],
+    scholarshipAmount: 10000, postStudyVisa: true, postStudyYears: 2,
+    employmentRate: 85, avgSalary: 64000, bangladeshiCommunity: "Medium",
+    partTimeAllowed: true, partTimeHours: 24, logo: "🌏", tier: 2,
+    intakes: ["Fall", "Spring"], fallDeadline: "2025-05-31", springDeadline: "2024-10-31",
+    tags: ["Modern", "Research", "Global"]
+  }
+];
+
+const SCHOLARSHIPS = [
+  {
+    id: 1, name: "DAAD Scholarship", country: "Germany",
+    degreeLevel: ["Master", "PhD"], amount: 18000,
+    coverage: ["Full Tuition", "Monthly Stipend", "Travel Allowance"],
+    minCGPA: 3.2, minIELTS: 6.5, deadline: "2024-12-31",
+    type: "Government", renewable: true, subjects: ["Engineering", "Development", "Economics"],
+    description: "One of the most prestigious scholarships for international students to study in Germany.",
+    link: "https://www.daad.de", featured: true
+  },
+  {
+    id: 2, name: "Lester B. Pearson Scholarship", country: "Canada",
+    degreeLevel: ["Bachelor"], amount: 30000,
+    coverage: ["Full Tuition", "Books", "Incidental Fees", "Full Residence Support"],
+    minCGPA: 3.7, minIELTS: 7.0, deadline: "2025-01-15",
+    type: "University", renewable: true, subjects: ["All Subjects"],
+    description: "The University of Toronto's most prestigious and competitive scholarship for international students.",
+    link: "https://future.utoronto.ca", featured: true
+  },
+  {
+    id: 3, name: "Chevening Scholarship", country: "UK",
+    degreeLevel: ["Master"], amount: 25000,
+    coverage: ["Full Tuition", "Monthly Stipend", "Travel Costs"],
+    minCGPA: 3.0, minIELTS: 6.5, deadline: "2024-11-05",
+    type: "Government", renewable: false, subjects: ["Leadership", "Policy", "Business"],
+    description: "UK government's global scholarship program, funded by the Foreign, Commonwealth and Development Office.",
+    link: "https://www.chevening.org", featured: true
+  },
+  {
+    id: 4, name: "Australian Government RTP", country: "Australia",
+    degreeLevel: ["Master", "PhD"], amount: 32000,
+    coverage: ["Tuition Fees", "Stipend", "Health Cover"],
+    minCGPA: 3.3, minIELTS: 6.5, deadline: "2024-09-30",
+    type: "Government", renewable: true, subjects: ["Research"],
+    description: "Research Training Program (RTP) provides block grants to higher education providers to support research students.",
+    link: "https://www.education.gov.au", featured: false
+  },
+  {
+    id: 5, name: "Holland Scholarship", country: "Netherlands",
+    degreeLevel: ["Bachelor", "Master"], amount: 5000,
+    coverage: ["One-time Grant"],
+    minCGPA: 3.0, minIELTS: 6.5, deadline: "2025-05-01",
+    type: "Government", renewable: false, subjects: ["All Subjects"],
+    description: "Financed by the Dutch Ministry of Education, Culture and Science for international students from outside the EEA.",
+    link: "https://www.studyinnl.org", featured: false
+  },
+  {
+    id: 6, name: "NUS Research Scholarship", country: "Singapore",
+    degreeLevel: ["PhD"], amount: 24000,
+    coverage: ["Full Tuition", "Monthly Stipend"],
+    minCGPA: 3.5, minIELTS: 7.0, deadline: "2024-12-15",
+    type: "University", renewable: true, subjects: ["Research", "STEM"],
+    description: "Awarded to outstanding graduates for research leading to a higher degree at the National University of Singapore.",
+    link: "https://nus.edu.sg", featured: false
+  },
+  {
+    id: 7, name: "ASEAN Undergraduate Scholarship", country: "Singapore",
+    degreeLevel: ["Bachelor"], amount: 20000,
+    coverage: ["Tuition Fees", "Living Allowance"],
+    minCGPA: 3.5, minIELTS: 6.5, deadline: "2025-03-15",
+    type: "University", renewable: true, subjects: ["All Subjects"],
+    description: "A freshman scholarship offered to support outstanding students from ASEAN member countries.",
+    link: "https://nus.edu.sg", featured: true
+  }
+];
 
 // --- ALGORITHMS ---
 
@@ -91,7 +263,7 @@ function calculateMatchScore(profile: any, university: any) {
   }
 
   // 4. Degree Level (10 pts)
-  if (university.degreeLevel.includes(profile.targetDegree)) {
+  if (university.degreeLevel && Array.isArray(university.degreeLevel) && university.degreeLevel.includes(profile.targetDegree)) {
     score += 10;
     matched.push(`${profile.targetDegree} degree offered here`);
   } else if (profile.targetDegree) {
@@ -99,7 +271,7 @@ function calculateMatchScore(profile: any, university: any) {
   }
 
   // 5. Subject Match (10 pts)
-  const subjectMatch = university.programs.some((p: string) => 
+  const subjectMatch = university.programs && Array.isArray(university.programs) && university.programs.some((p: string) => 
     p.toLowerCase().includes(profile.targetSubject?.toLowerCase() || "")
   );
   if (subjectMatch && profile.targetSubject) {
@@ -110,7 +282,7 @@ function calculateMatchScore(profile: any, university: any) {
   }
 
   // 6. Budget Match (15 pts)
-  const totalCost = university.tuitionPerYear + university.livingCost;
+  const totalCost = (university.tuitionPerYear || 0) + (university.livingCost || 0);
   const budgetMax = parseFloat(profile.budgetMax) || 100000;
   if (totalCost <= budgetMax) {
     score += 15;
@@ -123,7 +295,7 @@ function calculateMatchScore(profile: any, university: any) {
   }
 
   // 7. Scholarship (10 pts)
-  if (profile.scholarshipRequired === "yes" && university.scholarships.length > 0) {
+  if (profile.scholarshipRequired === "yes" && university.scholarships && Array.isArray(university.scholarships) && university.scholarships.length > 0) {
     score += 10;
     matched.push("Scholarships available");
   } else if (profile.scholarshipRequired !== "yes") {
@@ -382,8 +554,8 @@ function StudentPortal() {
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [universities, setUniversities] = useState<any[]>([]);
-  const [scholarships, setScholarships] = useState<any[]>([]);
+  const [universities, setUniversities] = useState<any[]>(UNIVERSITIES);
+  const [scholarships, setScholarships] = useState<any[]>(SCHOLARSHIPS);
   const location = useLocation();
   const navigate = useNavigate();
 
