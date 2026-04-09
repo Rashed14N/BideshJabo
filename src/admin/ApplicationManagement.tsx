@@ -157,15 +157,15 @@ export default function ApplicationManagement() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-display font-extrabold tracking-tight dark:text-white">Application Tracker (Admin)</h1>
-          <p className="text-slate-500 text-sm font-medium dark:text-slate-400">Monitor and manage all student applications across the platform.</p>
+          <h1 className="text-3xl font-display font-extrabold tracking-tight dark:text-white">Application Tracker</h1>
+          <p className="text-slate-500 text-sm font-medium dark:text-slate-400 mt-1">Monitor and manage all student applications across the platform.</p>
         </div>
       </div>
 
       {/* Filters */}
       <div className={cn(
-        "bg-white dark:bg-[#1A1A1A] p-4 border border-[#141414] dark:border-slate-700 rounded-xl flex flex-wrap items-center gap-4 transition-all",
-        isDarkMode ? "shadow-[4px_4px_0px_0px_#f59e0b]" : "shadow-sm"
+        "bg-white dark:bg-[#161B22] p-4 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-wrap items-center gap-4 transition-all shadow-sm",
+        isDarkMode && "shadow-none"
       )}>
         <div className="relative flex-1 min-w-[240px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -174,13 +174,13 @@ export default function ApplicationManagement() {
             placeholder="Search by university or program..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white"
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-[#0F1115] border border-slate-200 dark:border-slate-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-navy/5 dark:focus:ring-gold/5 focus:border-navy dark:focus:border-gold dark:text-white transition-all"
           />
         </div>
         <select 
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white"
+          className="bg-slate-50 dark:bg-[#0F1115] border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-sm font-bold outline-none focus:border-navy dark:focus:border-gold dark:text-white transition-all"
         >
           <option value="all">All Statuses</option>
           <option value="researching">Researching</option>
@@ -194,20 +194,20 @@ export default function ApplicationManagement() {
       {/* Bulk Actions Bar */}
       {selectedIds.length > 0 && (
         <div className={cn(
-          "bg-[#141414] text-white p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 animate-in slide-in-from-top-4 duration-300 transition-all",
-          isDarkMode ? "shadow-[4px_4px_0px_0px_#f59e0b]" : "shadow-lg"
+          "bg-navy dark:bg-gold text-white dark:text-navy p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 animate-in slide-in-from-top-4 duration-300 transition-all shadow-xl",
+          isDarkMode && "shadow-none"
         )}>
           <div className="flex items-center gap-3">
-            <div className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold">
+            <div className="bg-white/20 dark:bg-navy/10 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
               {selectedIds.length} Selected
             </div>
-            <p className="text-sm font-medium">Bulk actions for selected applications</p>
+            <p className="text-sm font-bold">Bulk actions for selected applications</p>
           </div>
           <div className="flex items-center gap-3">
             <select 
               disabled={bulkActionLoading}
               onChange={(e) => handleBulkStatusUpdate(e.target.value)}
-              className="bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 text-xs font-bold outline-none focus:border-white/40 cursor-pointer"
+              className="bg-white/10 dark:bg-navy/5 border border-white/20 dark:border-navy/10 rounded-lg px-3 py-1.5 text-xs font-bold outline-none focus:border-white/40 cursor-pointer"
               defaultValue=""
             >
               <option value="" disabled className="text-slate-900">Update Status...</option>
@@ -220,13 +220,13 @@ export default function ApplicationManagement() {
             <button 
               disabled={bulkActionLoading}
               onClick={handleBulkDelete}
-              className="flex items-center gap-2 bg-red-500/20 hover:bg-red-500/40 text-red-200 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors border border-red-500/30"
+              className="flex items-center gap-2 bg-red-500/20 hover:bg-red-500/40 text-red-100 dark:text-red-900 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors border border-red-500/30"
             >
               <Trash2 size={14} /> Delete Selected
             </button>
             <button 
               onClick={() => setSelectedIds([])}
-              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+              className="p-1.5 hover:bg-white/10 dark:hover:bg-navy/5 rounded-lg transition-colors"
             >
               <X size={18} />
             </button>
@@ -236,23 +236,23 @@ export default function ApplicationManagement() {
 
       {/* Table */}
       <div className={cn(
-        "bg-white dark:bg-[#1A1A1A] border border-[#141414] dark:border-slate-700 rounded-2xl overflow-hidden transition-all",
-        isDarkMode ? "shadow-[4px_4px_0px_0px_#f59e0b]" : "shadow-sm"
+        "bg-white dark:bg-[#161B22] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden transition-all shadow-sm",
+        isDarkMode && "shadow-none"
       )}>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-[#141414] dark:border-slate-700">
+              <tr className="bg-slate-50 dark:bg-[#0F1115] border-b border-slate-200 dark:border-slate-800">
                 <th className="p-4 w-10">
                   <input 
                     type="checkbox" 
                     checked={selectedIds.length === sortedApps.length && sortedApps.length > 0}
                     onChange={toggleSelectAll}
-                    className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-[#141414] dark:text-gold focus:ring-[#141414] dark:focus:ring-gold bg-transparent"
+                    className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-navy dark:text-gold focus:ring-navy dark:focus:ring-gold bg-transparent"
                   />
                 </th>
                 <th 
-                  className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  className="p-4 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors"
                   onClick={() => handleSort("university")}
                 >
                   <div className="flex items-center gap-2">
@@ -260,10 +260,10 @@ export default function ApplicationManagement() {
                     {sortField === "university" ? (sortOrder === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : <ArrowUpDown size={12} className="opacity-30" />}
                   </div>
                 </th>
-                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:table-cell">Student ID</th>
-                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:table-cell">User ID</th>
+                <th className="p-4 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:table-cell">Student ID</th>
+                <th className="p-4 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:table-cell">User ID</th>
                 <th 
-                  className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:table-cell cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  className="p-4 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:table-cell cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors"
                   onClick={() => handleSort("deadline")}
                 >
                   <div className="flex items-center gap-2">
@@ -271,45 +271,45 @@ export default function ApplicationManagement() {
                     {sortField === "deadline" ? (sortOrder === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : <ArrowUpDown size={12} className="opacity-30" />}
                   </div>
                 </th>
-                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Status</th>
-                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                <th className="p-4 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Status</th>
+                <th className="p-4 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {sortedApps.map((app) => (
                 <tr key={app.id} className={cn(
-                  "border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group",
-                  selectedIds.includes(app.id) && "bg-blue-50/50 dark:bg-blue-900/20"
+                  "border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group",
+                  selectedIds.includes(app.id) && "bg-blue-50/50 dark:bg-gold/5"
                 )}>
                   <td className="p-4">
                     <input 
                       type="checkbox" 
                       checked={selectedIds.includes(app.id)}
                       onChange={() => toggleSelect(app.id)}
-                      className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-[#141414] dark:text-gold focus:ring-[#141414] dark:focus:ring-gold bg-transparent"
+                      className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-navy dark:text-gold focus:ring-navy dark:focus:ring-gold bg-transparent"
                     />
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 text-blue-primary dark:text-blue-400 rounded-lg flex items-center justify-center font-bold shrink-0">
+                      <div className="w-10 h-10 bg-blue-50 dark:bg-gold/10 text-blue-primary dark:text-gold rounded-xl flex items-center justify-center font-bold shrink-0 shadow-sm">
                         <GraduationCap size={20} />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-bold truncate dark:text-white">{app.university}</p>
-                        <p className="text-[10px] text-slate-400 font-medium truncate">{app.program}</p>
+                        <p className="text-sm font-bold truncate dark:text-white group-hover:text-blue-primary dark:group-hover:text-gold transition-colors">{app.university}</p>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase truncate tracking-tight">{app.program}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="p-4 text-sm font-mono hidden sm:table-cell text-slate-500 dark:text-slate-400">
+                  <td className="p-4 text-xs font-mono hidden sm:table-cell text-slate-500 dark:text-slate-400 font-bold">
                     <div className="flex items-center gap-1.5">
                       <User size={12} /> {app.userId?.slice(0, 8)}...
                     </div>
                   </td>
-                  <td className="p-4 text-xs font-mono hidden sm:table-cell text-slate-500 dark:text-slate-400">
+                  <td className="p-4 text-[10px] font-mono hidden sm:table-cell text-slate-500 dark:text-slate-400 font-medium">
                     {app.userId}
                   </td>
                   <td className="p-4 text-sm font-mono hidden sm:table-cell">
-                    <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                    <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-bold">
                       <Clock size={14} /> {app.deadline || "N/A"}
                     </div>
                   </td>
@@ -318,27 +318,27 @@ export default function ApplicationManagement() {
                       value={app.status}
                       onChange={(e) => handleUpdateStatus(app.ref, e.target.value)}
                       className={cn(
-                        "text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider border-none outline-none cursor-pointer bg-transparent",
+                        "text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider border-none outline-none cursor-pointer bg-transparent transition-all",
                         app.status === 'accepted' ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" :
                         app.status === 'rejected' ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400" :
                         app.status === 'submitted' ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400" :
                         "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
                       )}
                     >
-                      <option value="researching" className="dark:bg-[#1A1A1A]">Researching</option>
-                      <option value="applying" className="dark:bg-[#1A1A1A]">Applying</option>
-                      <option value="submitted" className="dark:bg-[#1A1A1A]">Submitted</option>
-                      <option value="accepted" className="dark:bg-[#1A1A1A]">Accepted</option>
-                      <option value="rejected" className="dark:bg-[#1A1A1A]">Rejected</option>
+                      <option value="researching" className="dark:bg-[#161B22]">Researching</option>
+                      <option value="applying" className="dark:bg-[#161B22]">Applying</option>
+                      <option value="submitted" className="dark:bg-[#161B22]">Submitted</option>
+                      <option value="accepted" className="dark:bg-[#161B22]">Accepted</option>
+                      <option value="rejected" className="dark:bg-[#161B22]">Rejected</option>
                     </select>
                   </td>
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end gap-1">
                       <button 
                         onClick={() => handleDelete(app.ref)}
-                        className="p-2 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm rounded-lg text-slate-400 hover:text-red-600 transition-all"
+                        className="p-2 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm rounded-xl text-slate-400 hover:text-red-600 transition-all"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={18} />
                       </button>
                     </div>
                   </td>
@@ -346,12 +346,17 @@ export default function ApplicationManagement() {
               ))}
               {sortedApps.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-400 font-bold">No applications found.</td>
+                  <td colSpan={7} className="p-12 text-center text-slate-400 font-bold">No applications found.</td>
                 </tr>
               )}
               {loading && (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-400 font-bold">Loading applications...</td>
+                  <td colSpan={7} className="p-12 text-center text-slate-400 font-bold">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-navy dark:border-gold border-t-transparent rounded-full animate-spin" />
+                      Loading Applications...
+                    </div>
+                  </td>
                 </tr>
               )}
             </tbody>

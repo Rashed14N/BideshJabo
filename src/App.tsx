@@ -10,6 +10,7 @@ import {
   X, 
   ChevronRight, 
   ChevronLeft,
+  ChevronDown,
   CheckCircle2,
   AlertCircle,
   MapPin,
@@ -27,8 +28,14 @@ import {
   LogIn,
   Sparkles,
   Send,
-  Loader2
+  Loader2,
+  HelpCircle,
+  ArrowRight,
+  Clock,
+  Image as ImageIcon,
+  User as UserIcon
 } from 'lucide-react';
+import { cn } from './lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 import AdminLayout from './admin/AdminLayout';
@@ -39,8 +46,9 @@ import StudentManagement from './admin/StudentManagement';
 import ScholarshipManagement from './admin/ScholarshipManagement';
 import AnnouncementManagement from './admin/AnnouncementManagement';
 import ApplicationManagement from './admin/ApplicationManagement';
+import BlogManagement from './admin/BlogManagement';
 import { auth, db, loginWithGoogle, logout, onAuthStateChanged, User, OperationType, handleFirestoreError } from './firebase';
-import { doc, onSnapshot, setDoc, collection, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, collection, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import Logo from './components/Logo';
 // --- DATA CONSTANTS ---
 
@@ -417,14 +425,49 @@ function MatchBadge({ category }: { category: string }) {
   );
 }
 
+const DEFAULT_POSTS = [
+  {
+    id: "default-1",
+    title: "How to Apply by Yourself: A Step-by-Step Guide",
+    content: "Applying to universities abroad can seem like a daunting task, but with the right guidance, you can successfully navigate the process on your own. Learn about researching, standardized tests, and document preparation.",
+    author: "Bidesh Jabo Team",
+    image: "https://images.unsplash.com/photo-1523050335392-93851179ae22?auto=format&fit=crop&q=80&w=1000",
+    tags: ["Guide", "Self-Apply"],
+    createdAt: { toDate: () => new Date() }
+  },
+  {
+    id: "default-2",
+    title: "Top 5 Countries for Bangladeshi Students in 2026",
+    content: "Choosing the right destination is the first step. Based on visa success rates and work opportunities, we've ranked Germany, UK, Canada, Australia, and USA for the upcoming year.",
+    author: "Bidesh Jabo Team",
+    image: "https://images.unsplash.com/photo-1526772662000-3f88f10405ff?auto=format&fit=crop&q=80&w=1000",
+    tags: ["Destinations", "2026"],
+    createdAt: { toDate: () => new Date() }
+  }
+];
+
 // --- PAGE COMPONENTS ---
 
 function DashboardPage({ profile, setPage, apps, universities, scholarships }: { profile: any, setPage: any, apps: any[], universities: any[], scholarships: any[] }) {
+  const [blogs, setBlogs] = useState<any[]>([]);
+  const [selectedBlog, setSelectedBlog] = useState<any>(null);
+
+  useEffect(() => {
+    const q = query(collection(db, "blogs"), orderBy("createdAt", "desc"));
+    const unsub = onSnapshot(q, (snap) => {
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
+      setBlogs(data.filter(b => b.status === "Published"));
+    });
+    return () => unsub();
+  }, []);
+
   const profilePct = useMemo(() => {
     const fields = ["fullName", "cgpa", "ielts", "targetDegree"];
     const filled = fields.filter(f => profile[f]).length;
     return Math.round((filled / fields.length) * 100);
   }, [profile]);
+
+  const displayBlogs = blogs.length > 0 ? blogs : DEFAULT_POSTS;
 
   const topMatches = useMemo(() => {
     if (!profile.cgpa || !profile.ielts || !profile.targetDegree) return [];
@@ -520,6 +563,184 @@ function DashboardPage({ profile, setPage, apps, universities, scholarships }: {
           </div>
         </section>
       )}
+
+      {/* Blog Section */}
+      <section className="space-y-8 pt-12 border-t border-border-main">
+        <div className="flex items-end justify-between">
+          <div className="space-y-1">
+            <h3 className="text-2xl font-display font-extrabold text-navy">Latest Guides & Articles</h3>
+            <p className="text-muted text-sm font-medium">Expert advice for your study abroad journey.</p>
+          </div>
+          <button className="hidden sm:flex items-center gap-2 text-blue-primary font-bold text-sm hover:underline">
+            View All <ArrowRight size={16} />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {displayBlogs.map(blog => (
+            <div 
+              key={blog.id} 
+              onClick={() => setSelectedBlog(blog)}
+              className="group bg-white rounded-2xl border border-border-main overflow-hidden hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-500 cursor-pointer flex flex-col h-full"
+            >
+              <div className="relative h-56 sm:h-44 overflow-hidden">
+                <img 
+                  src={blog.image || `https://picsum.photos/seed/${blog.id}/800/600`} 
+                  alt="" 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                  referrerPolicy="no-referrer" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-navy/60 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
+                <div className="absolute top-4 left-4 flex gap-2">
+                  {blog.tags?.map((t: string) => (
+                    <span key={t} className="bg-gold text-navy text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-lg backdrop-blur-sm">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="p-6 flex-1 flex flex-col">
+                <div className="flex items-center gap-3 text-[10px] text-muted font-bold uppercase tracking-widest mb-4">
+                  <span className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md">
+                    <UserIcon size={12} className="text-gold" /> {blog.author}
+                  </span>
+                  <span className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md">
+                    <Clock size={12} className="text-gold" /> {blog.createdAt?.toDate ? blog.createdAt.toDate().toLocaleDateString() : 'Just now'}
+                  </span>
+                </div>
+                <h4 className="text-xl font-display font-extrabold text-navy group-hover:text-blue-primary transition-colors mb-3 line-clamp-2 leading-tight">
+                  {blog.title}
+                </h4>
+                <p className="text-slate-600 text-sm line-clamp-3 mb-6 flex-1 leading-relaxed">
+                  {blog.content}
+                </p>
+                <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-50">
+                  <div className="flex items-center text-blue-primary font-bold text-sm group-hover:translate-x-1 transition-transform">
+                    Read Full Guide <ArrowRight size={16} className="ml-2" />
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-primary group-hover:text-white transition-all duration-300">
+                    <BookOpen size={16} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="space-y-8 pt-12 border-t border-border-main">
+        <div className="text-center max-w-2xl mx-auto space-y-3">
+          <h3 className="text-3xl font-display font-extrabold text-navy">Frequently Asked Questions</h3>
+          <p className="text-muted font-medium">Quick answers to common queries about studying abroad from Bangladesh.</p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+          {[
+            { q: "How do I start my application?", a: "First, complete your profile with your academic details. Then use the 'University Match' tool to find institutions that fit your profile. Once you find a match, add it to your 'App Tracker'." },
+            { q: "Is Bidesh Jabo free to use?", a: "Yes! Our platform is completely free for students. We aim to empower Bangladeshi students with the right information to apply by themselves." },
+            { q: "How accurate is the Match Score?", a: "The Match Score is calculated based on historical admission data and current university requirements. While highly accurate, it should be used as a guide alongside official university websites." },
+            { q: "Can I apply directly through Bidesh Jabo?", a: "We provide the guidance and tracking tools, but you will need to submit your final application through the university's official portal. We provide links to those portals in the university details." },
+            { q: "What documents do I need?", a: "Commonly required documents include academic transcripts, IELTS/TOEFL scores, Statement of Purpose (SOP), Letters of Recommendation (LOR), and a valid passport." }
+          ].map((item, i) => (
+            <div key={i} className="bg-white p-6 rounded-2xl border border-border-main space-y-3 hover:shadow-md transition-shadow">
+              <h4 className="font-display font-extrabold text-navy flex items-start gap-2">
+                <span className="text-gold">Q.</span> {item.q}
+              </h4>
+              <p className="text-slate-600 text-sm leading-relaxed pl-6">
+                {item.a}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-navy rounded-3xl p-8 text-center space-y-6 max-w-4xl mx-auto">
+          <div className="space-y-2">
+            <h4 className="text-xl font-display font-bold text-white">Still have questions?</h4>
+            <p className="text-slate-400 text-sm">Our team is here to help you with your journey.</p>
+          </div>
+          <button className="bg-gold text-navy px-8 py-3 rounded-xl font-bold hover:bg-gold-hover transition-all">
+            Contact Support
+          </button>
+        </div>
+      </section>
+
+      {/* Blog Detail Modal */}
+      <AnimatePresence>
+        {selectedBlog && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedBlog(null)}
+              className="absolute inset-0 bg-navy/80 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white w-full max-w-4xl max-h-[90vh] rounded-[2rem] shadow-2xl overflow-hidden flex flex-col"
+            >
+              <div className="absolute top-6 right-6 z-10">
+                <button onClick={() => setSelectedBlog(null)} className="p-2 bg-white/20 hover:bg-white/40 backdrop-blur-md text-white rounded-full transition-all">
+                  <X size={24} />
+                </button>
+              </div>
+              
+              <div className="overflow-y-auto">
+                <div className="relative h-[40vh]">
+                  {selectedBlog.image ? (
+                    <img src={selectedBlog.image} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    <div className="w-full h-full bg-slate-100" />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/20 to-transparent" />
+                  <div className="absolute bottom-8 left-8 right-8">
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {selectedBlog.tags?.map((t: string) => (
+                        <span key={t} className="bg-gold text-navy text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                    <h2 className="text-3xl md:text-5xl font-display font-extrabold text-white leading-tight">
+                      {selectedBlog.title}
+                    </h2>
+                  </div>
+                </div>
+                
+                <div className="p-8 md:p-12">
+                  <div className="flex items-center gap-6 pb-8 mb-8 border-b border-slate-100">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-navy rounded-full flex items-center justify-center text-white font-bold">
+                        {selectedBlog.author[0]}
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted font-bold uppercase tracking-widest">Written By</p>
+                        <p className="text-sm font-bold text-navy">{selectedBlog.author}</p>
+                      </div>
+                    </div>
+                    <div className="h-8 w-px bg-slate-100" />
+                    <div>
+                      <p className="text-xs text-muted font-bold uppercase tracking-widest">Published On</p>
+                      <p className="text-sm font-bold text-navy">
+                        {selectedBlog.createdAt?.toDate ? selectedBlog.createdAt.toDate().toLocaleDateString() : 'Just now'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="prose prose-lg max-w-none">
+                    <p className="text-slate-600 leading-relaxed whitespace-pre-wrap text-lg">
+                      {selectedBlog.content}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -539,6 +760,7 @@ export default function App() {
           <Route path="scholarships" element={<ScholarshipManagement />} />
           <Route path="announcements" element={<AnnouncementManagement />} />
           <Route path="applications" element={<ApplicationManagement />} />
+          <Route path="blogs" element={<BlogManagement />} />
           <Route path="*" element={<div className="p-8 text-center font-bold text-slate-400">Coming Soon: This module is under development.</div>} />
         </Route>
 
@@ -555,6 +777,7 @@ function StudentPortal() {
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [universities, setUniversities] = useState<any[]>(UNIVERSITIES);
   const [scholarships, setScholarships] = useState<any[]>(SCHOLARSHIPS);
   const [loading, setLoading] = useState(true);
@@ -764,7 +987,6 @@ function StudentPortal() {
         <div className="hidden md:flex items-center gap-1">
           {[
             { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={18}/> },
-            { id: "profile", label: "My Profile", icon: <UserCircle size={18}/> },
             { id: "match", label: "University Match", icon: <GraduationCap size={18}/> },
             { id: "scholarship", label: "Scholarships", icon: <Award size={18}/> },
             { id: "tracker", label: "App Tracker", icon: <ClipboardList size={18}/> },
@@ -787,20 +1009,68 @@ function StudentPortal() {
 
         <div className="flex items-center gap-4">
           {user ? (
-            <div className="flex items-center gap-2 md:gap-3">
+            <div className="relative">
               <button 
-                onClick={() => setPage("profile")}
-                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-2 md:px-4 py-2 rounded-full border border-white/20 transition-all"
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 p-1 pr-4 rounded-full border border-white/20 transition-all group"
               >
-                <div className="w-2 h-2 rounded-full bg-gold animate-pulse" />
-                <span className="text-white text-[10px] md:text-xs font-bold">
-                  {profile.fullName?.split(' ')[0] || user.displayName?.split(' ')[0] || "User"}
-                  <span className="hidden sm:inline"> · {profilePct}%</span>
-                </span>
+                <div className="w-8 h-8 rounded-full bg-gold flex items-center justify-center text-navy font-bold text-sm shadow-lg group-hover:scale-105 transition-transform">
+                  {profile.fullName?.[0] || user.displayName?.[0] || "U"}
+                </div>
+                <div className="hidden sm:block text-left">
+                  <p className="text-white text-[10px] font-bold leading-none">
+                    {profile.fullName?.split(' ')[0] || user.displayName?.split(' ')[0] || "User"}
+                  </p>
+                  <p className="text-gold text-[8px] font-bold uppercase tracking-tighter mt-0.5">
+                    {profilePct}% Profile
+                  </p>
+                </div>
+                <ChevronDown size={14} className={cn("text-slate-400 transition-transform", isProfileMenuOpen && "rotate-180")} />
               </button>
-              <button onClick={logout} className="p-2 text-slate-400 hover:text-white transition-colors" title="Logout">
-                <LogOut size={20} />
-              </button>
+
+              <AnimatePresence>
+                {isProfileMenuOpen && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-[110]" 
+                      onClick={() => setIsProfileMenuOpen(false)} 
+                    />
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[120]"
+                    >
+                      <div className="p-4 border-b border-slate-50 bg-slate-50/50">
+                        <p className="text-xs font-bold text-navy truncate">{profile.fullName || user.displayName || "User"}</p>
+                        <p className="text-[10px] text-muted truncate">{user.email}</p>
+                      </div>
+                      <div className="p-2">
+                        <button 
+                          onClick={() => {
+                            setPage("profile");
+                            setIsProfileMenuOpen(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-navy transition-all"
+                        >
+                          <UserCircle size={18} className="text-gold" />
+                          My Profile
+                        </button>
+                        <button 
+                          onClick={() => {
+                            logout();
+                            setIsProfileMenuOpen(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-red-500 hover:bg-red-50 transition-all"
+                        >
+                          <LogOut size={18} />
+                          Logout
+                        </button>
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
             </div>
           ) : (
             <button onClick={handleLogin} className="bg-gold text-navy px-4 md:px-6 py-2 rounded-full font-bold text-xs md:text-sm hover:bg-gold-hover transition-all flex items-center gap-2">
@@ -838,7 +1108,6 @@ function StudentPortal() {
               <div className="flex-1 overflow-y-auto p-4 space-y-2">
                 {[
                   { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={20}/> },
-                  { id: "profile", label: "My Profile", icon: <UserCircle size={20}/> },
                   { id: "match", label: "University Match", icon: <GraduationCap size={20}/> },
                   { id: "scholarship", label: "Scholarships", icon: <Award size={20}/> },
                   { id: "tracker", label: "App Tracker", icon: <ClipboardList size={20}/> },
@@ -862,7 +1131,31 @@ function StudentPortal() {
                 ))}
               </div>
 
-              <div className="p-6 border-t border-white/10">
+              <div className="p-6 border-t border-white/10 space-y-4">
+                {user && (
+                  <div className="flex flex-col gap-2">
+                    <button 
+                      onClick={() => {
+                        setPage("profile");
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-white bg-white/5 hover:bg-white/10 transition-all"
+                    >
+                      <UserCircle size={20} className="text-gold" />
+                      My Profile
+                    </button>
+                    <button 
+                      onClick={() => {
+                        logout();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-all"
+                    >
+                      <LogOut size={20} />
+                      Logout
+                    </button>
+                  </div>
+                )}
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest text-center">
                   Bidesh Jabo · Version 1.0.0
                 </p>

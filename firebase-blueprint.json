@@ -53,6 +53,22 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
       },
       "required": ["userId", "university", "program", "status"]
+    },
+    "Blog": {
+      "title": "Blog Post",
+      "description": "Educational articles for students.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Title of the blog post" },
+        "content": { "type": "string", "description": "Markdown or HTML content" },
+        "author": { "type": "string", "description": "Author name" },
+        "image": { "type": "string", "description": "Cover image URL" },
+        "tags": { "type": "array", "items": { "type": "string" }, "description": "Tags for categorization" },
+        "status": { "type": "string", "enum": ["Draft", "Published"], "description": "Publication status" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
+      },
+      "required": ["title", "content", "status"]
     }
   },
   "firestore": {
@@ -63,6 +79,10 @@
     "/users/{userId}/applications/{appId}": {
       "schema": "Application",
       "description": "User's university applications"
+    },
+    "/blogs/{blogId}": {
+      "schema": "Blog",
+      "description": "Public blog posts"
     }
   }
 }

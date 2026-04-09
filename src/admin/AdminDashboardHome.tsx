@@ -24,7 +24,7 @@ import {
   Cell
 } from 'recharts';
 import { db } from '../firebase';
-import { collection, onSnapshot, query, orderBy, limit, writeBatch, doc, getDocs, addDoc, serverTimestamp, collectionGroup } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, limit, writeBatch, doc, getDocs, addDoc, serverTimestamp, collectionGroup, setDoc } from 'firebase/firestore';
 import { X, Send } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -141,6 +141,60 @@ export default function AdminDashboardHome() {
       }
 
       await batch.commit();
+
+      // Seed Initial Blog Posts
+      const blog1Id = "how-to-apply-by-yourself";
+      await setDoc(doc(db, "blogs", blog1Id), {
+        title: "How to Apply by Yourself: A Step-by-Step Guide",
+        content: `Applying to universities abroad can seem like a daunting task, but with the right guidance, you can successfully navigate the process on your own. Here is a step-by-step guide:
+
+1. Research & Shortlisting: Start by identifying countries and universities that match your academic background and budget. Use our University Match tool to simplify this!
+
+2. Standardized Tests: Prepare for and take necessary tests like IELTS, TOEFL, GRE, or GMAT. Most universities require these to prove your proficiency.
+
+3. Prepare Documents: Gather transcripts, write your Statement of Purpose (SOP), and request Letters of Recommendation (LOR). Your SOP is your chance to shine!
+
+4. Submit Applications: Apply through the official university portals before the deadlines. Keep track of every date in our App Tracker.
+
+5. Visa Process: Once accepted, apply for your student visa with the required financial documentation.
+
+How Bidesh Jabo Helps:
+- University Match: We analyze your profile to find universities where you have the best chance of admission.
+- Scholarship Finder: Discover financial aid opportunities tailored to your profile.
+- Application Tracker: Keep all your deadlines and statuses in one organized place.
+- Expert Guides: Access our library of articles to stay informed.`,
+        author: "Bidesh Jabo Team",
+        image: "https://images.unsplash.com/photo-1523050335392-93851179ae22?auto=format&fit=crop&q=80&w=1000",
+        tags: ["Guide", "Self-Apply", "Basics"],
+        status: "Published",
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+
+      const blog2Id = "top-countries-2026";
+      await setDoc(doc(db, "blogs", blog2Id), {
+        title: "Top 5 Countries for Bangladeshi Students in 2026",
+        content: `Choosing the right destination is the first step in your study abroad journey. Based on visa success rates, part-time work opportunities, and post-study work permits, here are the top 5 countries for 2026:
+
+1. Germany: With zero tuition fees at public universities and a strong economy, Germany remains a top choice for engineering and science students.
+
+2. United Kingdom: The Graduate Route visa allows students to stay for 2 years after graduation, making it highly attractive for career growth.
+
+3. Canada: Known for its welcoming immigration policies, Canada offers excellent PR prospects for international graduates.
+
+4. Australia: High-quality education and beautiful lifestyle, with extended post-study work rights in regional areas.
+
+5. USA: The land of opportunity continues to lead in research and innovation, with STEM OPT extensions providing up to 3 years of work authorization.
+
+Start your journey today by checking your eligibility for these countries on Bidesh Jabo!`,
+        author: "Bidesh Jabo Team",
+        image: "https://images.unsplash.com/photo-1526772662000-3f88f10405ff?auto=format&fit=crop&q=80&w=1000",
+        tags: ["Destinations", "2026", "Trends"],
+        status: "Published",
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+
       setSeedStatus('success');
       setTimeout(() => setSeedStatus('idle'), 3000);
     } catch (err) {
@@ -233,9 +287,9 @@ export default function AdminDashboardHome() {
   const dashboardStats = [
     { label: "Total Students", value: stats.totalStudents.toLocaleString(), trend: "+100%", up: true, icon: <Users size={24} /> },
     { label: "Active Users (7d)", value: stats.totalStudents.toLocaleString(), trend: "0%", up: true, icon: <TrendingUp size={24} /> },
-    { label: "Universities", value: stats.universities.toString(), trend: "Real", up: true, icon: <GraduationCap size={24} /> },
-    { label: "Scholarships", value: stats.scholarships.toString(), trend: "Real", up: true, icon: <Award size={24} /> },
-    { label: "Applications", value: stats.totalApps.toString(), trend: "Real", up: true, icon: <ClipboardList size={24} /> },
+    { label: "Universities", value: stats.universities.toString(), trend: "Active", up: true, icon: <GraduationCap size={24} /> },
+    { label: "Scholarships", value: stats.scholarships.toString(), trend: "Active", up: true, icon: <Award size={24} /> },
+    { label: "Applications", value: stats.totalApps.toString(), trend: "Total", up: true, icon: <ClipboardList size={24} /> },
     { label: "New Signups", value: stats.totalStudents.toString(), trend: "Today", up: true, icon: <Users size={24} /> },
   ];
 
@@ -248,14 +302,14 @@ export default function AdminDashboardHome() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-display font-extrabold tracking-tight dark:text-white">Dashboard Overview</h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Welcome back, Admin. Here's what's happening today.</p>
+          <h1 className="text-3xl font-display font-extrabold tracking-tight dark:text-white">Dashboard Overview</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">Welcome back, Admin. Here's what's happening today.</p>
         </div>
         <div className="flex gap-3">
           <button 
             onClick={handleClearData}
             disabled={isSeeding}
-            className="border border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-100 dark:hover:bg-red-900/20 transition-all flex items-center gap-2 disabled:opacity-50"
+            className="border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-100 dark:hover:bg-red-500/20 transition-all flex items-center gap-2 disabled:opacity-50"
           >
             <X size={18} /> Clear Data
           </button>
@@ -264,14 +318,14 @@ export default function AdminDashboardHome() {
             disabled={isSeeding}
             className={cn(
               "border px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 disabled:opacity-50",
-              seedStatus === 'success' ? "bg-green-50 dark:bg-green-900/10 border-green-500 text-green-700 dark:text-green-400" :
-              seedStatus === 'error' ? "bg-red-50 dark:bg-red-900/10 border-red-500 text-red-700 dark:text-red-400" :
-              "bg-white dark:bg-[#1A1A1A] border-[#141414] dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 dark:text-white"
+              seedStatus === 'success' ? "bg-green-50 dark:bg-green-500/10 border-green-500 text-green-700 dark:text-green-400" :
+              seedStatus === 'error' ? "bg-red-50 dark:bg-red-500/10 border-red-500 text-red-700 dark:text-red-400" :
+              "bg-white dark:bg-[#161B22] border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 dark:text-white shadow-sm"
             )}
           >
             {isSeeding ? (
               <>
-                <div className="w-4 h-4 border-2 border-navy border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-navy dark:border-gold border-t-transparent rounded-full animate-spin" />
                 Seeding...
               </>
             ) : seedStatus === 'success' ? (
@@ -290,7 +344,7 @@ export default function AdminDashboardHome() {
           </button>
           <button 
             onClick={() => setIsAnnouncementModalOpen(true)}
-            className="bg-[#141414] dark:bg-gold dark:text-[#141414] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-800 dark:hover:bg-gold-hover transition-colors flex items-center gap-2"
+            className="bg-navy dark:bg-gold dark:text-navy text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-800 dark:hover:bg-gold-hover transition-all flex items-center gap-2 shadow-lg shadow-navy/10 dark:shadow-gold/10"
           >
             <Bell size={18} /> Send Announcement
           </button>
@@ -299,53 +353,53 @@ export default function AdminDashboardHome() {
 
       {/* Announcement Modal */}
       {isAnnouncementModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-[#1A1A1A] w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col border dark:border-slate-700">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#161B22] w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-slate-200 dark:border-slate-800">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <h3 className="text-xl font-display font-extrabold dark:text-white">Send Global Announcement</h3>
-              <button onClick={() => setIsAnnouncementModalOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full dark:text-white"><X size={20} /></button>
+              <button onClick={() => setIsAnnouncementModalOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full dark:text-slate-400 transition-colors"><X size={20} /></button>
             </div>
             <form onSubmit={handleSendAnnouncement} className="p-6 space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">Title</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Title</label>
                 <input 
                   required 
                   type="text" 
                   value={announcement.title} 
                   onChange={e => setAnnouncement({...announcement, title: e.target.value})} 
                   placeholder="e.g. New Scholarship Available!"
-                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white" 
+                  className="w-full p-2.5 bg-slate-50 dark:bg-[#0F1115] border border-slate-200 dark:border-slate-800 rounded-lg outline-none focus:ring-2 focus:ring-navy/5 dark:focus:ring-gold/5 focus:border-navy dark:focus:border-gold dark:text-white transition-all" 
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">Type</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Type</label>
                 <select 
                   value={announcement.type} 
                   onChange={e => setAnnouncement({...announcement, type: e.target.value})}
-                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white"
+                  className="w-full p-2.5 bg-slate-50 dark:bg-[#0F1115] border border-slate-200 dark:border-slate-800 rounded-lg outline-none focus:ring-2 focus:ring-navy/5 dark:focus:ring-gold/5 focus:border-navy dark:focus:border-gold dark:text-white transition-all"
                 >
-                  <option value="info" className="dark:bg-[#1A1A1A]">Information</option>
-                  <option value="warning" className="dark:bg-[#1A1A1A]">Warning</option>
-                  <option value="success" className="dark:bg-[#1A1A1A]">Success / Update</option>
+                  <option value="info" className="dark:bg-[#161B22]">Information</option>
+                  <option value="warning" className="dark:bg-[#161B22]">Warning</option>
+                  <option value="success" className="dark:bg-[#161B22]">Success / Update</option>
                 </select>
               </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">Message</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Message</label>
                 <textarea 
                   required 
                   rows={4} 
                   value={announcement.message} 
                   onChange={e => setAnnouncement({...announcement, message: e.target.value})} 
                   placeholder="Type your message here..."
-                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white resize-none" 
+                  className="w-full p-2.5 bg-slate-50 dark:bg-[#0F1115] border border-slate-200 dark:border-slate-800 rounded-lg outline-none focus:ring-2 focus:ring-navy/5 dark:focus:ring-gold/5 focus:border-navy dark:focus:border-gold dark:text-white resize-none transition-all" 
                 />
               </div>
               <div className="pt-4 flex gap-3">
-                <button type="button" onClick={() => setIsAnnouncementModalOpen(false)} className="flex-1 py-3 border border-slate-200 dark:border-slate-700 rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-slate-800 dark:text-white">Cancel</button>
+                <button type="button" onClick={() => setIsAnnouncementModalOpen(false)} className="flex-1 py-3 border border-slate-200 dark:border-slate-800 rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-slate-800 dark:text-white transition-colors">Cancel</button>
                 <button 
                   type="submit" 
                   disabled={isSending}
-                  className="flex-1 py-3 bg-[#141414] dark:bg-gold dark:text-[#141414] text-white rounded-xl font-bold hover:bg-slate-800 dark:hover:bg-gold-hover transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="flex-1 py-3 bg-navy dark:bg-gold dark:text-navy text-white rounded-xl font-bold hover:bg-slate-800 dark:hover:bg-gold-hover transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-navy/10 dark:shadow-gold/10"
                 >
                   {isSending ? "Sending..." : <><Send size={18} /> Send Now</>}
                 </button>
@@ -359,25 +413,25 @@ export default function AdminDashboardHome() {
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 lg:gap-6">
         {dashboardStats.map((stat, i) => (
           <div key={i} className={cn(
-            "bg-white dark:bg-[#1A1A1A] p-4 lg:p-6 border border-[#141414] dark:border-slate-700 rounded-xl transition-all",
-            isDarkMode ? "shadow-[4px_4px_0px_0px_#f59e0b]" : "shadow-[4px_4px_0px_0px_#141414]"
+            "bg-white dark:bg-[#161B22] p-4 lg:p-6 border border-slate-200 dark:border-slate-800 rounded-2xl transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group",
+            isDarkMode ? "hover:border-gold/50" : "hover:border-navy/50"
           )}>
             <div className="flex items-center justify-between mb-3 lg:mb-4">
-              <div className="p-1.5 lg:p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
+              <div className="p-2 bg-slate-50 dark:bg-[#0F1115] rounded-xl group-hover:scale-110 transition-transform">
                 {React.cloneElement(stat.icon as React.ReactElement, { 
-                  size: 18, 
-                  className: isDarkMode ? "text-gold" : "text-[#141414]" 
+                  size: 20, 
+                  className: isDarkMode ? "text-gold" : "text-navy" 
                 })}
               </div>
               <span className={cn(
-                "text-[10px] font-bold px-1.5 py-0.5 rounded-full",
-                stat.up ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider",
+                stat.up ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-400'
               )}>
                 {stat.trend}
               </span>
             </div>
-            <p className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider">{stat.label}</p>
-            <h3 className="text-lg lg:text-2xl font-display font-extrabold mt-1 dark:text-white">{stat.value}</h3>
+            <p className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest">{stat.label}</p>
+            <h3 className="text-xl lg:text-2xl font-display font-extrabold mt-1 dark:text-white">{stat.value}</h3>
           </div>
         ))}
       </div>
@@ -463,21 +517,21 @@ export default function AdminDashboardHome() {
       </div>
 
       {/* Latest Students Table */}
-      <div className="bg-white dark:bg-[#1A1A1A] border border-[#141414] dark:border-slate-700 rounded-2xl overflow-hidden shadow-sm">
-        <div className="p-6 border-b border-[#141414] dark:border-slate-700 flex items-center justify-between">
+      <div className="bg-white dark:bg-[#161B22] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+        <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <h3 className="text-lg font-display font-extrabold dark:text-white">Latest Registered Students</h3>
           <Link to="/admin/students" className="text-sm font-bold text-blue-primary dark:text-gold hover:underline">View All Students</Link>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-[#141414] dark:border-slate-700">
-                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Student</th>
-                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:table-cell">Target</th>
-                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden md:table-cell">CGPA</th>
-                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Profile %</th>
-                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden lg:table-cell">Status</th>
-                <th className="p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Action</th>
+              <tr className="bg-slate-50 dark:bg-[#0F1115] border-b border-slate-200 dark:border-slate-800">
+                <th className="p-4 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Student</th>
+                <th className="p-4 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:table-cell">Target</th>
+                <th className="p-4 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden md:table-cell">CGPA</th>
+                <th className="p-4 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Profile %</th>
+                <th className="p-4 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden lg:table-cell">Status</th>
+                <th className="p-4 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -487,34 +541,34 @@ export default function AdminDashboardHome() {
                 const pct = Math.round((filled / fields.length) * 100);
 
                 return (
-                  <tr key={student.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                  <tr key={student.id} className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-[#141414] dark:bg-gold dark:text-[#141414] text-white rounded-full shrink-0 flex items-center justify-center font-bold text-xs">
+                        <div className="w-10 h-10 bg-navy dark:bg-gold dark:text-navy text-white rounded-xl shrink-0 flex items-center justify-center font-bold text-sm shadow-sm">
                           {student.fullName?.[0] || student.email?.[0]?.toUpperCase() || "?"}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-bold truncate dark:text-white">{student.fullName || "Unnamed Student"}</p>
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{student.email}</p>
+                          <p className="text-sm font-bold truncate dark:text-white group-hover:text-blue-primary dark:group-hover:text-gold transition-colors">{student.fullName || "Unnamed Student"}</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate font-medium">{student.email}</p>
                         </div>
                       </div>
                     </td>
                     <td className="p-4 hidden sm:table-cell">
-                      <p className="text-sm font-medium dark:text-slate-300">{student.targetDegree || "N/A"}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">{student.targetCountries?.join(', ') || "N/A"}</p>
+                      <p className="text-sm font-bold dark:text-slate-200">{student.targetDegree || "N/A"}</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-tight">{student.targetCountries?.join(', ') || "N/A"}</p>
                     </td>
                     <td className="p-4 text-sm font-mono hidden md:table-cell dark:text-slate-300">{student.cgpa || "0.0"} / {student.cgpaScale || "4.0"}</td>
                     <td className="p-4">
-                      <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                        <div className="bg-gold h-full" style={{ width: `${pct}%` }} />
+                      <div className="w-32 bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden shadow-inner">
+                        <div className="bg-gold h-full rounded-full" style={{ width: `${pct}%` }} />
                       </div>
-                      <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1">{pct}% Profile Complete</p>
+                      <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1.5 uppercase tracking-tighter">{pct}% Profile Complete</p>
                     </td>
                     <td className="p-4 hidden lg:table-cell">
-                      <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">Active</span>
+                      <span className="bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400 text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider">Active</span>
                     </td>
                     <td className="p-4">
-                      <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-[#141414] dark:hover:text-gold">
+                      <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-slate-400 hover:text-navy dark:hover:text-gold transition-all">
                         <Eye size={18} />
                       </button>
                     </td>
