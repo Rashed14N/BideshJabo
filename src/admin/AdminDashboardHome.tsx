@@ -112,21 +112,25 @@ export default function AdminDashboardHome() {
     try {
       const batch = writeBatch(db);
       
-      // Seed Universities
+      // Seed Universities with fixed IDs to prevent duplicates
       for (const uni of UNIVERSITIES) {
-        const newDoc = doc(collection(db, "universities"));
-        batch.set(newDoc, {
+        const uniId = uni.name.toLowerCase().replace(/\s+/g, '-');
+        const docRef = doc(db, "universities", uniId);
+        batch.set(docRef, {
           ...uni,
+          id: uniId,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
       }
 
-      // Seed Scholarships
+      // Seed Scholarships with fixed IDs
       for (const schol of SCHOLARSHIPS) {
-        const newDoc = doc(collection(db, "scholarships"));
-        batch.set(newDoc, {
+        const scholId = schol.name.toLowerCase().replace(/\s+/g, '-');
+        const docRef = doc(db, "scholarships", scholId);
+        batch.set(docRef, {
           ...schol,
+          id: scholId,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
@@ -139,6 +143,28 @@ export default function AdminDashboardHome() {
       console.error("Seeding error:", err);
       setSeedStatus('error');
       setTimeout(() => setSeedStatus('idle'), 3000);
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
+  const handleClearData = async () => {
+    if (!window.confirm("Are you sure you want to clear all University and Scholarship data? This cannot be undone.")) return;
+    
+    setIsSeeding(true);
+    try {
+      const uniSnap = await getDocs(collection(db, "universities"));
+      const scholSnap = await getDocs(collection(db, "scholarships"));
+      
+      const batch = writeBatch(db);
+      uniSnap.forEach(d => batch.delete(d.ref));
+      scholSnap.forEach(d => batch.delete(d.ref));
+      
+      await batch.commit();
+      alert("Data cleared successfully!");
+    } catch (err) {
+      console.error("Error clearing data:", err);
+      alert("Failed to clear data.");
     } finally {
       setIsSeeding(false);
     }
@@ -222,6 +248,13 @@ export default function AdminDashboardHome() {
           <p className="text-slate-500 text-sm font-medium">Welcome back, Admin. Here's what's happening today.</p>
         </div>
         <div className="flex gap-3">
+          <button 
+            onClick={handleClearData}
+            disabled={isSeeding}
+            className="border border-red-200 bg-red-50 text-red-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-100 transition-all flex items-center gap-2 disabled:opacity-50"
+          >
+            <X size={18} /> Clear Data
+          </button>
           <button 
             onClick={handleSeedData}
             disabled={isSeeding}

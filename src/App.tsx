@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, Component } from 'react';
 import { 
   LayoutDashboard, 
   UserCircle, 
@@ -257,13 +257,13 @@ function calculateMatchScore(profile: any, university: any) {
   }
 
   // 3. Country Preference (15 pts)
-  if (profile.targetCountries.includes(university.country)) {
+  if (profile.targetCountries?.includes(university.country)) {
     score += 15;
     matched.push(`${university.country} is in your preferred countries`);
   }
 
   // 4. Degree Level (10 pts)
-  if (university.degreeLevel.includes(profile.targetDegree)) {
+  if (university.degreeLevel?.includes(profile.targetDegree)) {
     score += 10;
     matched.push(`${profile.targetDegree} degree offered here`);
   } else if (profile.targetDegree) {
@@ -271,7 +271,7 @@ function calculateMatchScore(profile: any, university: any) {
   }
 
   // 5. Subject Match (10 pts)
-  const subjectMatch = university.programs.some((p: string) => 
+  const subjectMatch = university.programs?.some((p: string) => 
     p.toLowerCase().includes(profile.targetSubject?.toLowerCase() || "")
   );
   if (subjectMatch && profile.targetSubject) {
@@ -282,7 +282,7 @@ function calculateMatchScore(profile: any, university: any) {
   }
 
   // 6. Budget Match (15 pts)
-  const totalCost = university.tuitionPerYear + university.livingCost;
+  const totalCost = (university.tuitionPerYear || 0) + (university.livingCost || 0);
   const budgetMax = parseFloat(profile.budgetMax) || 100000;
   if (totalCost <= budgetMax) {
     score += 15;
@@ -295,7 +295,7 @@ function calculateMatchScore(profile: any, university: any) {
   }
 
   // 7. Scholarship (10 pts)
-  if (profile.scholarshipRequired === "yes" && university.scholarships.length > 0) {
+  if (profile.scholarshipRequired === "yes" && university.scholarships?.length > 0) {
     score += 10;
     matched.push("Scholarships available");
   } else if (profile.scholarshipRequired !== "yes") {
@@ -1302,8 +1302,8 @@ function MatchPage({ profile, setPage, onAddApp, universities }: { profile: any,
       .map(u => ({ ...u, match: calculateMatchScore(profile, u) }))
       .filter(u => {
         const countryMatch = filters.country === "All" || u.country === filters.country;
-        const degreeMatch = filters.degree === "All" || u.degreeLevel.includes(filters.degree);
-        const totalCost = u.tuitionPerYear + u.livingCost;
+        const degreeMatch = filters.degree === "All" || u.degreeLevel?.includes(filters.degree);
+        const totalCost = (u.tuitionPerYear || 0) + (u.livingCost || 0);
         const budgetMatch = filters.budget === "Any" || 
           (filters.budget === "<15k" && totalCost < 15000) ||
           (filters.budget === "<25k" && totalCost < 25000) ||
@@ -1313,11 +1313,11 @@ function MatchPage({ profile, setPage, onAddApp, universities }: { profile: any,
       })
       .sort((a, b) => {
         if (filters.sort === "score") return b.match.score - a.match.score;
-        return a.qsRank - b.qsRank;
+        return (a.qsRank || 999) - (b.qsRank || 999);
       });
-  }, [profile, filters]);
+  }, [profile, filters, universities]);
 
-  const countries = ["All", ...new Set(UNIVERSITIES.map(u => u.country))];
+  const countries = ["All", ...new Set(universities.map(u => u.country))];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">

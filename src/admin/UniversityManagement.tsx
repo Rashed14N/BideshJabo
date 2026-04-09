@@ -23,7 +23,8 @@ export default function UniversityManagement() {
   const [editingUni, setEditingUni] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: "", country: "", city: "", qsRank: "", tuitionPerYear: "", minCGPA: "", minIELTS: "", status: "Active",
-    logo: "🎓", intake: "Fall", deadline: "", programs: "", description: ""
+    logo: "🎓", intake: "Fall", deadline: "", programs: "", description: "",
+    degreeLevel: [] as string[], livingCost: ""
   });
 
   useEffect(() => {
@@ -52,13 +53,16 @@ export default function UniversityManagement() {
         intake: uni.intakes?.[0] || "Fall",
         deadline: uni.fallDeadline || "",
         programs: uni.programs?.join(", ") || "",
-        description: uni.description || ""
+        description: uni.description || "",
+        degreeLevel: uni.degreeLevel || [],
+        livingCost: uni.livingCost?.toString() || ""
       });
     } else {
       setEditingUni(null);
       setFormData({
         name: "", country: "", city: "", qsRank: "", tuitionPerYear: "", minCGPA: "", minIELTS: "", status: "Active",
-        logo: "🎓", intake: "Fall", deadline: "", programs: "", description: ""
+        logo: "🎓", intake: "Fall", deadline: "", programs: "", description: "",
+        degreeLevel: [], livingCost: ""
       });
     }
     setIsModalOpen(true);
@@ -81,6 +85,8 @@ export default function UniversityManagement() {
         fallDeadline: formData.deadline,
         programs: formData.programs.split(",").map(p => p.trim()).filter(p => p),
         description: formData.description,
+        degreeLevel: formData.degreeLevel,
+        livingCost: parseInt(formData.livingCost) || 0,
         updatedAt: serverTimestamp()
       };
 
@@ -311,9 +317,38 @@ export default function UniversityManagement() {
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Deadline</label>
-                  <input type="date" value={formData.deadline} onChange={e => setFormData({...formData, deadline: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
+                  <label className="text-xs font-bold text-slate-500 uppercase">Living Cost/Year ($)</label>
+                  <input type="number" value={formData.livingCost} onChange={e => setFormData({...formData, livingCost: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500 uppercase">Degree Levels</label>
+                <div className="flex flex-wrap gap-2">
+                  {["Bachelor", "Master", "PhD"].map(l => (
+                    <button
+                      key={l}
+                      type="button"
+                      onClick={() => {
+                        const current = [...formData.degreeLevel];
+                        if (current.includes(l)) {
+                          setFormData({ ...formData, degreeLevel: current.filter(lvl => lvl !== l) });
+                        } else {
+                          setFormData({ ...formData, degreeLevel: [...current, l] });
+                        }
+                      }}
+                      className={cn(
+                        "px-3 py-1 rounded-full text-xs font-bold border transition-all",
+                        formData.degreeLevel.includes(l) ? "bg-[#141414] border-[#141414] text-white" : "border-slate-200 text-slate-500"
+                      )}
+                    >
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase">Deadline</label>
+                <input type="date" value={formData.deadline} onChange={e => setFormData({...formData, deadline: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#141414]" />
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">Programs (Comma separated)</label>
