@@ -263,7 +263,7 @@ function calculateMatchScore(profile: any, university: any) {
   }
 
   // 4. Degree Level (10 pts)
-  if (university.degreeLevel && Array.isArray(university.degreeLevel) && university.degreeLevel.includes(profile.targetDegree)) {
+  if (university.degreeLevel.includes(profile.targetDegree)) {
     score += 10;
     matched.push(`${profile.targetDegree} degree offered here`);
   } else if (profile.targetDegree) {
@@ -271,7 +271,7 @@ function calculateMatchScore(profile: any, university: any) {
   }
 
   // 5. Subject Match (10 pts)
-  const subjectMatch = university.programs && Array.isArray(university.programs) && university.programs.some((p: string) => 
+  const subjectMatch = university.programs.some((p: string) => 
     p.toLowerCase().includes(profile.targetSubject?.toLowerCase() || "")
   );
   if (subjectMatch && profile.targetSubject) {
@@ -282,7 +282,7 @@ function calculateMatchScore(profile: any, university: any) {
   }
 
   // 6. Budget Match (15 pts)
-  const totalCost = (university.tuitionPerYear || 0) + (university.livingCost || 0);
+  const totalCost = university.tuitionPerYear + university.livingCost;
   const budgetMax = parseFloat(profile.budgetMax) || 100000;
   if (totalCost <= budgetMax) {
     score += 15;
@@ -295,7 +295,7 @@ function calculateMatchScore(profile: any, university: any) {
   }
 
   // 7. Scholarship (10 pts)
-  if (profile.scholarshipRequired === "yes" && university.scholarships && Array.isArray(university.scholarships) && university.scholarships.length > 0) {
+  if (profile.scholarshipRequired === "yes" && university.scholarships.length > 0) {
     score += 10;
     matched.push("Scholarships available");
   } else if (profile.scholarshipRequired !== "yes") {
@@ -458,9 +458,9 @@ function DashboardPage({ profile, setPage, apps, universities, scholarships }: {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { icon: <GraduationCap />, label: "Universities Listed", val: universities.length, page: "match" },
+          { icon: <GraduationCap />, label: "Universities Listed", val: UNIVERSITIES.length, page: "match" },
           { icon: <TrendingUp />, label: "Strong Matches", val: topMatches.filter(m => m.match.score >= 50).length || "—", page: "match" },
-          { icon: <Award />, label: "Eligible Scholarships", val: eligibleScholarships.length || scholarships.length, page: "scholarship" },
+          { icon: <Award />, label: "Eligible Scholarships", val: eligibleScholarships.length || SCHOLARSHIPS.length, page: "scholarship" },
           { icon: <ClipboardList />, label: "Applications", val: apps.length, page: "tracker" }
         ].map((stat, i) => (
           <div key={i} onClick={() => setPage(stat.page)} className="bg-white p-6 rounded-2xl border border-border-main hover:shadow-lg transition-all cursor-pointer group">
@@ -562,13 +562,17 @@ function StudentPortal() {
   // Fetch Universities & Scholarships from Firestore
   useEffect(() => {
     const unsubUnis = onSnapshot(collection(db, "universities"), (snap) => {
-      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setUniversities(data);
+      if (!snap.empty) {
+        const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setUniversities(data);
+      }
     });
 
     const unsubSchols = onSnapshot(collection(db, "scholarships"), (snap) => {
-      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setScholarships(data);
+      if (!snap.empty) {
+        const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setScholarships(data);
+      }
     });
 
     return () => {
@@ -953,7 +957,7 @@ function StudentPortal() {
             {page === "match" && <MatchPage profile={profile} setPage={setPage} onAddApp={handleAddApp} universities={universities} />}
             {page === "scholarship" && <ScholarshipPage profile={profile} scholarships={scholarships} />}
             {page === "tracker" && <TrackerPage apps={apps} onUpdateStatus={handleUpdateApp} onRemove={handleRemoveApp} onAdd={() => setPage("match")} />}
-            {page === "calculator" && <CostCalcPage universities={universities} />}
+            {page === "calculator" && <CostCalcPage />}
           </>
         )}
       </main>
@@ -1313,7 +1317,7 @@ function MatchPage({ profile, setPage, onAddApp, universities }: { profile: any,
       });
   }, [profile, filters]);
 
-  const countries = useMemo(() => ["All", ...new Set(universities.map(u => u.country))], [universities]);
+  const countries = ["All", ...new Set(UNIVERSITIES.map(u => u.country))];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -1782,7 +1786,7 @@ function TrackerPage({ apps, onUpdateStatus, onRemove, onAdd }: { apps: any[], o
   );
 }
 
-function CostCalcPage({ universities }: { universities: any[] }) {
+function CostCalcPage() {
   const [sel, setSel] = useState({ university: "", duration: "2", currency: "USD" });
   const [result, setResult] = useState<any>(null);
 
@@ -1790,19 +1794,19 @@ function CostCalcPage({ universities }: { universities: any[] }) {
   const symbols: any = { BDT: "৳", EUR: "€", GBP: "£", USD: "$" };
 
   const calculate = () => {
-    const uni = universities.find(u => u.name === sel.university);
+    const uni = UNIVERSITIES.find(u => u.name === sel.university);
     if (!uni) return;
     const years = parseFloat(sel.duration);
     const r = rates[sel.currency];
     const sym = symbols[sel.currency] || "$";
     
     setResult({
-      tuition: (uni.tuitionPerYear || 0) * years * r,
-      living: (uni.livingCost || 0) * years * r,
+      tuition: uni.tuitionPerYear * years * r,
+      living: uni.livingCost * years * r,
       visa: 300 * r,
       flight: 1200 * r,
       misc: 2000 * years * r,
-      total: ((uni.tuitionPerYear || 0) * years + (uni.livingCost || 0) * years + 300 + 1200 + 2000 * years) * r,
+      total: (uni.tuitionPerYear * years + uni.livingCost * years + 300 + 1200 + 2000 * years) * r,
       symbol: sym,
       uni,
       years
@@ -1818,7 +1822,7 @@ function CostCalcPage({ universities }: { universities: any[] }) {
             <label className="text-xs font-bold text-navy uppercase tracking-wider">Select University</label>
             <select value={sel.university} onChange={e => setSel({...sel, university: e.target.value})} className="w-full p-3 border-2 border-slate-100 rounded-xl outline-none focus:border-blue-primary bg-white">
               <option value="">Choose a university</option>
-              {universities.map(u => <option key={u.id} value={u.name}>{u.name}</option>)}
+              {UNIVERSITIES.map(u => <option key={u.id} value={u.name}>{u.name}</option>)}
             </select>
           </div>
           <div className="space-y-2">
