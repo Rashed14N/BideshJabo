@@ -42,7 +42,7 @@ const UNIVERSITIES = [
     employmentRate: 92, avgSalary: 75000, bangladeshiCommunity: "Large",
     partTimeAllowed: true, partTimeHours: 20, logo: "🍁", tier: 1,
     intakes: ["Fall"], fallDeadline: "2025-01-15", springDeadline: null,
-    tags: ["Research", "Tech Hub", "Prestige"], status: "Active", score: 95
+    tags: ["Research", "Tech Hub", "Prestige"], status: "Active"
   },
   {
     name: "University of Melbourne", shortName: "Unimelb", country: "Australia", city: "Melbourne",
@@ -55,7 +55,59 @@ const UNIVERSITIES = [
     employmentRate: 88, avgSalary: 68000, bangladeshiCommunity: "Medium",
     partTimeAllowed: true, partTimeHours: 24, logo: "🦘", tier: 1,
     intakes: ["Fall", "Spring"], fallDeadline: "2025-05-31", springDeadline: "2024-10-31",
-    tags: ["Global", "Culture", "Innovation"], status: "Active", score: 92
+    tags: ["Global", "Culture", "Innovation"], status: "Active"
+  },
+  {
+    name: "TU Munich", shortName: "TUM", country: "Germany", city: "Munich",
+    qsRank: 37, acceptanceRate: 8, tuitionPerYear: 500, livingCost: 12000,
+    minCGPA: 3.3, minIELTS: 7.0, minTOEFL: 88, greRequired: true, workExpRequired: false,
+    programs: ["Informatics", "Mechanical Engineering", "Physics", "Management"],
+    degreeLevel: ["Master", "PhD"],
+    scholarships: ["DAAD Scholarship"],
+    scholarshipAmount: 12000, postStudyVisa: true, postStudyYears: 1.5,
+    employmentRate: 95, avgSalary: 62000, bangladeshiCommunity: "Medium",
+    partTimeAllowed: true, partTimeHours: 20, logo: "🇩🇪", tier: 1,
+    intakes: ["Fall", "Spring"], fallDeadline: "2025-05-31", springDeadline: "2024-11-30",
+    tags: ["Engineering", "Low Tuition", "Industry"], status: "Active"
+  },
+  {
+    name: "University of British Columbia", shortName: "UBC", country: "Canada", city: "Vancouver",
+    qsRank: 46, acceptanceRate: 52, tuitionPerYear: 32000, livingCost: 16000,
+    minCGPA: 3.2, minIELTS: 6.5, minTOEFL: 90, greRequired: false, workExpRequired: false,
+    programs: ["Sustainability", "Forestry", "Computer Science", "Economics"],
+    degreeLevel: ["Bachelor", "Master", "PhD"],
+    scholarships: ["International Major Entrance Scholarship"],
+    scholarshipAmount: 20000, postStudyVisa: true, postStudyYears: 3,
+    employmentRate: 89, avgSalary: 70000, bangladeshiCommunity: "Large",
+    partTimeAllowed: true, partTimeHours: 20, logo: "🌲", tier: 1,
+    intakes: ["Fall"], fallDeadline: "2025-01-15", springDeadline: null,
+    tags: ["Nature", "Research", "Diverse"], status: "Active"
+  },
+  {
+    name: "University of Manchester", shortName: "Manchester", country: "UK", city: "Manchester",
+    qsRank: 32, acceptanceRate: 56, tuitionPerYear: 27000, livingCost: 14000,
+    minCGPA: 3.0, minIELTS: 6.5, minTOEFL: 90, greRequired: false, workExpRequired: false,
+    programs: ["Engineering", "Humanities", "Social Sciences", "Business"],
+    degreeLevel: ["Bachelor", "Master", "PhD"],
+    scholarships: ["Global Futures Scholarship"],
+    scholarshipAmount: 5000, postStudyVisa: true, postStudyYears: 2,
+    employmentRate: 91, avgSalary: 55000, bangladeshiCommunity: "Large",
+    partTimeAllowed: true, partTimeHours: 20, logo: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", tier: 1,
+    intakes: ["Fall"], fallDeadline: "2025-06-30", springDeadline: null,
+    tags: ["Heritage", "Urban", "Science"], status: "Active"
+  },
+  {
+    name: "NUS Singapore", shortName: "NUS", country: "Singapore", city: "Singapore",
+    qsRank: 8, acceptanceRate: 5, tuitionPerYear: 18000, livingCost: 14000,
+    minCGPA: 3.6, minIELTS: 6.5, minTOEFL: 92, greRequired: true, workExpRequired: true,
+    programs: ["Computing", "Engineering", "Medicine", "Public Policy"],
+    degreeLevel: ["Bachelor", "Master", "PhD"],
+    scholarships: ["ASEAN Undergraduate Scholarship", "NUS Research Scholarship"],
+    scholarshipAmount: 20000, postStudyVisa: true, postStudyYears: 1,
+    employmentRate: 94, avgSalary: 60000, bangladeshiCommunity: "Small",
+    partTimeAllowed: true, partTimeHours: 16, logo: "🦁", tier: 1,
+    intakes: ["Fall", "Spring"], fallDeadline: "2025-02-21", springDeadline: "2024-09-30",
+    tags: ["Elite", "Asia Hub", "Tech"], status: "Active"
   }
 ];
 
@@ -68,6 +120,24 @@ const SCHOLARSHIPS = [
     type: "Government", renewable: true, subjects: ["Engineering", "Development", "Economics"],
     description: "One of the most prestigious scholarships for international students to study in Germany.",
     link: "https://www.daad.de", featured: true
+  },
+  {
+    name: "Lester B. Pearson Scholarship", country: "Canada",
+    degreeLevel: ["Bachelor"], amount: 30000,
+    coverage: ["Full Tuition", "Books", "Incidental Fees", "Full Residence Support"],
+    minCGPA: 3.7, minIELTS: 7.0, deadline: "2025-01-15",
+    type: "University", renewable: true, subjects: ["All Subjects"],
+    description: "The University of Toronto's most prestigious and competitive scholarship for international students.",
+    link: "https://future.utoronto.ca", featured: true
+  },
+  {
+    name: "Chevening Scholarship", country: "UK",
+    degreeLevel: ["Master"], amount: 25000,
+    coverage: ["Full Tuition", "Monthly Stipend", "Travel Costs"],
+    minCGPA: 3.0, minIELTS: 6.5, deadline: "2024-11-05",
+    type: "Government", renewable: false, subjects: ["Leadership", "Policy", "Business"],
+    description: "UK government's global scholarship program, funded by the Foreign, Commonwealth and Development Office.",
+    link: "https://www.chevening.org", featured: true
   }
 ];
 
