@@ -50,10 +50,10 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-[#E4E3E0] flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white border-2 border-[#141414] rounded-3xl p-10 shadow-[8px_8px_0px_0px_#141414] space-y-8">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white border-2 border-navy rounded-3xl p-10 shadow-[8px_8px_0px_0px_#0a1628] space-y-8">
         <div className="text-center space-y-4">
-          <div className="w-20 h-20 bg-[#141414] rounded-2xl flex items-center justify-center mx-auto shadow-[4px_4px_0px_0px_#F27D26]">
+          <div className="w-20 h-20 bg-navy rounded-2xl flex items-center justify-center mx-auto shadow-[4px_4px_0px_0px_#f59e0b]">
             <Logo showText={false} iconSize={40} />
           </div>
           <h1 className="text-3xl font-display font-extrabold tracking-tight">Admin Access</h1>
@@ -71,7 +71,7 @@ export default function AdminLogin() {
           <button 
             onClick={handleAdminLogin}
             disabled={loading}
-            className="w-full bg-[#141414] text-white py-4 rounded-xl font-display font-extrabold hover:bg-slate-800 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+            className="w-full bg-navy text-white py-4 rounded-xl font-display font-extrabold hover:bg-slate-800 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
           >
             {loading ? <Loader2 className="animate-spin" size={20} /> : <LogIn size={20} />}
             Sign in as Administrator
@@ -85,7 +85,7 @@ export default function AdminLogin() {
         <div className="pt-6 border-t border-slate-100">
           <button 
             onClick={() => navigate('/')}
-            className="w-full text-slate-500 text-sm font-bold hover:text-[#141414] transition-colors"
+            className="w-full text-slate-500 text-sm font-bold hover:text-navy transition-colors"
           >
             ← Back to Student Portal
           </button>
