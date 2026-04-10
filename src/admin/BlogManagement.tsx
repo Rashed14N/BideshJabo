@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { 
   Search, 
   Plus, 
@@ -13,7 +14,12 @@ import {
   User,
   Tag,
   Upload,
-  RefreshCw
+  RefreshCw,
+  CheckSquare,
+  Square,
+  MoreVertical,
+  AlertCircle,
+  Calendar
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { db } from '../firebase';
@@ -25,6 +31,7 @@ export default function BlogManagement() {
   const [search, setSearch] = useState("");
   const [blogs, setBlogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedBlogs, setSelectedBlogs] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBlogForView, setSelectedBlogForView] = useState<any>(null);
   const [editingBlog, setEditingBlog] = useState<any>(null);
@@ -125,6 +132,41 @@ export default function BlogManagement() {
     b.author.toLowerCase().includes(search.toLowerCase())
   );
 
+  const toggleSelectAll = () => {
+    if (selectedBlogs.length === filteredBlogs.length) {
+      setSelectedBlogs([]);
+    } else {
+      setSelectedBlogs(filteredBlogs.map(b => b.id));
+    }
+  };
+
+  const toggleSelectBlog = (id: string) => {
+    setSelectedBlogs(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Are you sure you want to delete ${selectedBlogs.length} blog posts?`)) return;
+    try {
+      const promises = selectedBlogs.map(id => deleteDoc(doc(db, "blogs", id)));
+      await Promise.all(promises);
+      setSelectedBlogs([]);
+    } catch (err) {
+      console.error("Error bulk deleting:", err);
+    }
+  };
+
+  const handleBulkPublish = async () => {
+    try {
+      const promises = selectedBlogs.map(id => updateDoc(doc(db, "blogs", id), { status: "Published", updatedAt: serverTimestamp() }));
+      await Promise.all(promises);
+      setSelectedBlogs([]);
+    } catch (err) {
+      console.error("Error bulk publishing:", err);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -157,6 +199,41 @@ export default function BlogManagement() {
         </div>
       </div>
 
+      {/* Bulk Actions Bar */}
+      {selectedBlogs.length > 0 && (
+        <div className="bg-navy dark:bg-gold p-4 rounded-2xl flex items-center justify-between shadow-xl animate-in slide-in-from-top-4 duration-300">
+          <div className="flex items-center gap-3">
+            <div className="bg-white/20 dark:bg-navy/10 p-2 rounded-lg">
+              <CheckSquare size={20} className="text-white dark:text-navy" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-white dark:text-navy">{selectedBlogs.length} Posts Selected</p>
+              <p className="text-[10px] font-bold text-white/60 dark:text-navy/60 uppercase tracking-widest">Bulk Actions Available</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button 
+              onClick={handleBulkPublish}
+              className="px-4 py-2 bg-white/10 dark:bg-navy/5 hover:bg-white/20 dark:hover:bg-navy/10 text-white dark:text-navy rounded-lg text-xs font-bold transition-colors flex items-center gap-2"
+            >
+              <CheckCircle2 size={16} /> Publish All
+            </button>
+            <button 
+              onClick={handleBulkDelete}
+              className="px-4 py-2 bg-red-500/20 dark:bg-red-500/10 hover:bg-red-500/30 dark:hover:bg-red-500/20 text-white dark:text-red-600 rounded-lg text-xs font-bold transition-colors flex items-center gap-2"
+            >
+              <Trash2 size={16} /> Delete All
+            </button>
+            <button 
+              onClick={() => setSelectedBlogs([])}
+              className="p-2 text-white/60 dark:text-navy/60 hover:text-white dark:hover:text-navy transition-colors"
+            >
+              <X size={20} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
       <div className={cn(
         "bg-white dark:bg-[#161B22] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden transition-all shadow-sm",
@@ -166,6 +243,18 @@ export default function BlogManagement() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 dark:bg-[#0F1115] border-b border-slate-200 dark:border-slate-800">
+                <th className="p-4 w-10">
+                  <button 
+                    onClick={toggleSelectAll}
+                    className="text-slate-400 hover:text-navy dark:hover:text-gold transition-colors"
+                  >
+                    {selectedBlogs.length === filteredBlogs.length && filteredBlogs.length > 0 ? (
+                      <CheckSquare size={20} className="text-navy dark:text-gold" />
+                    ) : (
+                      <Square size={20} />
+                    )}
+                  </button>
+                </th>
                 <th className="p-4 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Post</th>
                 <th className="p-4 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Author</th>
                 <th className="p-4 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Status</th>
@@ -175,7 +264,22 @@ export default function BlogManagement() {
             </thead>
             <tbody>
               {filteredBlogs.map((blog) => (
-                <tr key={blog.id} className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
+                <tr key={blog.id} className={cn(
+                  "border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group",
+                  selectedBlogs.includes(blog.id) && "bg-blue-50/50 dark:bg-gold/5"
+                )}>
+                  <td className="p-4">
+                    <button 
+                      onClick={() => toggleSelectBlog(blog.id)}
+                      className="text-slate-400 hover:text-navy dark:hover:text-gold transition-colors"
+                    >
+                      {selectedBlogs.includes(blog.id) ? (
+                        <CheckSquare size={20} className="text-navy dark:text-gold" />
+                      ) : (
+                        <Square size={20} />
+                      )}
+                    </button>
+                  </td>
                   <td className="p-4">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-[#0F1115] overflow-hidden shrink-0 shadow-sm">
@@ -360,36 +464,95 @@ export default function BlogManagement() {
 
       {/* View Modal */}
       {selectedBlogForView && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-[#1A1A1A] w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border dark:border-slate-700">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+          <div className="bg-white dark:bg-[#161B22] w-full max-w-4xl rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-200 dark:border-slate-800">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <h3 className="text-xl font-display font-extrabold dark:text-white">Preview Post</h3>
-              <button onClick={() => setSelectedBlogForView(null)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full dark:text-white"><X size={20} /></button>
-            </div>
-            <div className="p-6 overflow-y-auto space-y-6">
-              <img 
-                src={selectedBlogForView.image || `https://picsum.photos/seed/${selectedBlogForView.id}/1200/800`} 
-                alt="" 
-                className="w-full h-64 object-cover rounded-xl" 
-                referrerPolicy="no-referrer" 
-              />
-              <div className="space-y-2">
-                <h4 className="text-3xl font-display font-extrabold dark:text-white">{selectedBlogForView.title}</h4>
-                <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
-                  <span className="flex items-center gap-1"><User size={14}/> {selectedBlogForView.author}</span>
-                  <span className="flex items-center gap-1"><Clock size={14}/> {selectedBlogForView.createdAt?.toDate ? selectedBlogForView.createdAt.toDate().toLocaleDateString() : 'Just now'}</span>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-navy dark:bg-gold dark:text-navy rounded-xl flex items-center justify-center text-white font-bold">
+                  {selectedBlogForView.author[0]}
+                </div>
+                <div>
+                  <h3 className="text-lg font-display font-extrabold dark:text-white">Preview Post</h3>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">By {selectedBlogForView.author}</p>
                 </div>
               </div>
-              <div className="prose dark:prose-invert max-w-none">
-                <p className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{selectedBlogForView.content}</p>
+              <button onClick={() => setSelectedBlogForView(null)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full dark:text-slate-400 transition-colors"><X size={20} /></button>
+            </div>
+            <div className="p-0 overflow-y-auto custom-scrollbar">
+              <div className="relative h-72 sm:h-96">
+                <img 
+                  src={selectedBlogForView.image || `https://picsum.photos/seed/${selectedBlogForView.id}/1200/800`} 
+                  alt="" 
+                  className="w-full h-full object-cover" 
+                  referrerPolicy="no-referrer" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#161B22] via-[#161B22]/20 to-transparent" />
+                <div className="absolute bottom-8 left-8 right-8">
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {selectedBlogForView.tags?.map((t: string) => (
+                      <span key={t} className="bg-gold text-navy text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest shadow-lg">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                  <h2 className="text-3xl md:text-5xl font-display font-extrabold text-white leading-tight drop-shadow-lg">
+                    {selectedBlogForView.title}
+                  </h2>
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2 pt-4 border-t dark:border-slate-800">
-                {selectedBlogForView.tags?.map((t: string) => (
-                  <span key={t} className="flex items-center gap-1 text-xs font-bold text-blue-primary dark:text-gold bg-blue-50 dark:bg-gold/10 px-3 py-1 rounded-full">
-                    <Tag size={12}/> {t}
-                  </span>
-                ))}
+
+              <div className="p-8 md:p-12">
+                <div className="flex items-center gap-6 pb-8 mb-8 border-b border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-50 dark:bg-gold/10 rounded-lg text-blue-primary dark:text-gold">
+                      <User size={18} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">Author</p>
+                      <p className="text-sm font-bold text-navy dark:text-white">{selectedBlogForView.author}</p>
+                    </div>
+                  </div>
+                  <div className="h-8 w-px bg-slate-100 dark:bg-slate-800" />
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-50 dark:bg-green-500/10 rounded-lg text-green-600 dark:text-green-400">
+                      <Calendar size={18} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">Published</p>
+                      <p className="text-sm font-bold text-navy dark:text-white">
+                        {selectedBlogForView.createdAt?.toDate ? selectedBlogForView.createdAt.toDate().toLocaleDateString() : 'Just now'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="h-8 w-px bg-slate-100 dark:bg-slate-800" />
+                  <div className="flex items-center gap-3">
+                    <div className={cn(
+                      "p-2 rounded-lg",
+                      selectedBlogForView.status === 'Published' ? "bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400" : "bg-slate-50 dark:bg-slate-800 text-slate-400"
+                    )}>
+                      {selectedBlogForView.status === 'Published' ? <CheckCircle2 size={18} /> : <Clock size={18} />}
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">Status</p>
+                      <p className="text-sm font-bold text-navy dark:text-white">{selectedBlogForView.status}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="markdown-body prose dark:prose-invert max-w-none text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
+                  <ReactMarkdown>
+                    {selectedBlogForView.content}
+                  </ReactMarkdown>
+                </div>
               </div>
+            </div>
+            <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-[#0F1115] flex justify-end">
+              <button 
+                onClick={() => setSelectedBlogForView(null)} 
+                className="px-8 py-3 bg-navy dark:bg-gold dark:text-navy text-white rounded-xl font-bold text-sm transition-all hover:bg-slate-800 dark:hover:bg-gold-hover shadow-lg shadow-navy/10 dark:shadow-gold/10"
+              >
+                Close Preview
+              </button>
             </div>
           </div>
         </div>

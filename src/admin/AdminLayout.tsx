@@ -33,6 +33,14 @@ export default function AdminLayout() {
   const [admin, setAdmin] = useState<any>(null);
 
   useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
+  useEffect(() => {
     fetch('/api/admin/me')
       .then(res => res.json())
       .then(data => {
@@ -68,7 +76,10 @@ export default function AdminLayout() {
   </div>;
 
   return (
-    <div className={cn("min-h-screen flex bg-[#F8F9FA] text-slate-900", isDarkMode && "dark bg-[#0F1115] text-slate-100")}>
+    <div className={cn(
+      "min-h-screen flex transition-colors duration-300",
+      isDarkMode ? "dark bg-[#0F1115] text-slate-100" : "bg-[#F8F9FA] text-slate-900"
+    )}>
       {/* Sidebar Overlay for Mobile */}
       {isSidebarOpen && (
         <div 

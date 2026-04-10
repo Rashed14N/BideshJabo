@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, Component } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { 
   LayoutDashboard, 
   UserCircle, 
@@ -611,9 +612,9 @@ function DashboardPage({ profile, setPage, apps, universities, scholarships }: {
                 <h4 className="text-xl font-display font-extrabold text-navy group-hover:text-blue-primary transition-colors mb-3 line-clamp-2 leading-tight">
                   {blog.title}
                 </h4>
-                <p className="text-slate-600 text-sm line-clamp-3 mb-6 flex-1 leading-relaxed">
-                  {blog.content}
-                </p>
+                <div className="text-slate-600 text-sm line-clamp-3 mb-6 flex-1 leading-relaxed">
+                  <ReactMarkdown>{blog.content}</ReactMarkdown>
+                </div>
                 <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-50">
                   <div className="flex items-center text-blue-primary font-bold text-sm group-hover:translate-x-1 transition-transform">
                     Read Full Guide <ArrowRight size={16} className="ml-2" />
@@ -730,10 +731,10 @@ function DashboardPage({ profile, setPage, apps, universities, scholarships }: {
                     </div>
                   </div>
                   
-                  <div className="prose prose-lg max-w-none">
-                    <p className="text-slate-600 leading-relaxed whitespace-pre-wrap text-lg">
+                  <div className="markdown-body prose prose-lg max-w-none">
+                    <ReactMarkdown>
                       {selectedBlog.content}
-                    </p>
+                    </ReactMarkdown>
                   </div>
                 </div>
               </div>
@@ -1432,8 +1433,32 @@ function ProfilePage({ profile, setProfile, setPage, onSave }: { profile: any, s
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-xs font-bold text-navy uppercase tracking-wider">IELTS Overall</label>
-                <input type="number" step="0.5" value={profile.ielts} onChange={e => updateField("ielts", e.target.value)} placeholder="7.5" className="w-full p-3 border-2 border-slate-100 rounded-xl focus:border-blue-primary outline-none transition-all" />
-                <p className="text-[10px] text-muted font-bold">Score 0-9</p>
+                <input 
+                  type="number" 
+                  step="0.5" 
+                  min="0"
+                  max="9"
+                  value={profile.ielts} 
+                  onChange={e => {
+                    const val = e.target.value;
+                    if (val === "" || (parseFloat(val) >= 0 && parseFloat(val) <= 9)) {
+                      updateField("ielts", val);
+                    }
+                  }} 
+                  placeholder="7.5" 
+                  className={cn(
+                    "w-full p-3 border-2 rounded-xl outline-none transition-all",
+                    (parseFloat(profile.ielts) < 0 || parseFloat(profile.ielts) > 9) 
+                      ? "border-red-500 focus:border-red-500" 
+                      : "border-slate-100 focus:border-blue-primary"
+                  )}
+                />
+                <div className="flex justify-between items-center">
+                  <p className="text-[10px] text-muted font-bold">Score 0-9</p>
+                  {(parseFloat(profile.ielts) < 0 || parseFloat(profile.ielts) > 9) && (
+                    <p className="text-[10px] text-red-500 font-bold">Must be between 0 and 9</p>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-navy uppercase tracking-wider">TOEFL Total</label>

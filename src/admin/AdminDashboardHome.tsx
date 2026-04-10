@@ -76,7 +76,7 @@ export default function AdminDashboardHome() {
   
   const COLORS = isDarkMode 
     ? ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6'] 
-    : ['#141414', '#F27D26', '#3b82f6', '#10b981', '#f59e0b'];
+    : ['#1a56db', '#F27D26', '#3b82f6', '#10b981', '#f59e0b'];
 
   const [students, setStudents] = useState<any[]>([]);
   const [stats, setStats] = useState({
@@ -418,7 +418,7 @@ Start your journey today by checking your eligibility for these countries on Bid
           )}>
             <div className="flex items-center justify-between mb-3 lg:mb-4">
               <div className="p-2 bg-slate-50 dark:bg-[#0F1115] rounded-xl group-hover:scale-110 transition-transform">
-                {React.cloneElement(stat.icon as React.ReactElement, { 
+                {React.cloneElement(stat.icon as any, { 
                   size: 20, 
                   className: isDarkMode ? "text-gold" : "text-navy" 
                 })}
@@ -439,7 +439,7 @@ Start your journey today by checking your eligibility for these countries on Bid
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Registration Chart */}
-        <div className="bg-white dark:bg-[#1A1A1A] p-8 border border-[#141414] dark:border-slate-700 rounded-2xl shadow-sm">
+        <div className="bg-white dark:bg-[#1A1A1A] p-8 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm">
           <h3 className="text-lg font-display font-extrabold mb-6 dark:text-white">User Registrations (30 Days)</h3>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -450,22 +450,22 @@ Start your journey today by checking your eligibility for these countries on Bid
                 <Tooltip 
                   contentStyle={{ 
                     borderRadius: '12px', 
-                    border: isDarkMode ? '1px solid #334155' : '1px solid #141414', 
-                    boxShadow: isDarkMode ? '4px 4px 0px 0px #f59e0b' : '4px 4px 0px 0px #141414', 
+                    border: isDarkMode ? '1px solid #334155' : '1px solid #e2e8f0', 
+                    boxShadow: isDarkMode ? '4px 4px 0px 0px #f59e0b' : '0 10px 15px -3px rgb(0 0 0 / 0.1)', 
                     backgroundColor: isDarkMode ? '#1A1A1A' : '#fff', 
                     color: isDarkMode ? '#fff' : '#141414' 
                   }}
                   itemStyle={{ color: isDarkMode ? '#fff' : '#141414' }}
                   cursor={{ stroke: isDarkMode ? '#334155' : '#f1f5f9', strokeWidth: 2 }}
                 />
-                <Line type="monotone" dataKey="users" stroke={isDarkMode ? '#f59e0b' : '#141414'} strokeWidth={3} dot={{ r: 4, fill: isDarkMode ? '#f59e0b' : '#141414' }} activeDot={{ r: 6 }} />
+                <Line type="monotone" dataKey="users" stroke={isDarkMode ? '#f59e0b' : '#1a56db'} strokeWidth={3} dot={{ r: 4, fill: isDarkMode ? '#f59e0b' : '#1a56db' }} activeDot={{ r: 6 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Country Pie Chart */}
-        <div className="bg-white dark:bg-[#1A1A1A] p-8 border border-[#141414] dark:border-slate-700 rounded-2xl shadow-sm">
+        <div className="bg-white dark:bg-[#1A1A1A] p-8 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm">
           <h3 className="text-lg font-display font-extrabold mb-6 dark:text-white">Students by Target Country</h3>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -488,8 +488,8 @@ Start your journey today by checking your eligibility for these countries on Bid
                 <Tooltip 
                   contentStyle={{ 
                     borderRadius: '12px', 
-                    border: isDarkMode ? '1px solid #334155' : '1px solid #141414', 
-                    boxShadow: isDarkMode ? '4px 4px 0px 0px #f59e0b' : '4px 4px 0px 0px #141414', 
+                    border: isDarkMode ? '1px solid #334155' : '1px solid #e2e8f0', 
+                    boxShadow: isDarkMode ? '4px 4px 0px 0px #f59e0b' : '0 10px 15px -3px rgb(0 0 0 / 0.1)', 
                     backgroundColor: isDarkMode ? '#1A1A1A' : '#fff', 
                     color: isDarkMode ? '#fff' : '#141414' 
                   }}

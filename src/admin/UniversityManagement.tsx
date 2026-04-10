@@ -38,7 +38,7 @@ export default function UniversityManagement() {
     name: "", country: "", city: "", qsRank: "", tuitionPerYear: "", minCGPA: "", minIELTS: "", status: "Active",
     logo: "🎓", intakes: [{ type: "Fall", deadline: "" }] as { type: string, deadline: string }[], 
     programs: "", description: "",
-    degreeLevel: [] as string[], livingCost: ""
+    degreeLevel: [] as string[], livingCost: "", deadline: ""
   });
 
   const validateField = (name: string, value: string) => {
@@ -101,14 +101,15 @@ export default function UniversityManagement() {
         programs: uni.programs?.join(", ") || "",
         description: uni.description || "",
         degreeLevel: uni.degreeLevel || [],
-        livingCost: uni.livingCost?.toString() || ""
+        livingCost: uni.livingCost?.toString() || "",
+        deadline: ""
       });
     } else {
       setEditingUni(null);
       setFormData({
         name: "", country: "", city: "", qsRank: "", tuitionPerYear: "", minCGPA: "", minIELTS: "", status: "Active",
         logo: "🎓", intakes: [{ type: "Fall", deadline: "" }], programs: "", description: "",
-        degreeLevel: [], livingCost: ""
+        degreeLevel: [], livingCost: "", deadline: ""
       });
     }
     setIsModalOpen(true);
@@ -363,11 +364,11 @@ export default function UniversityManagement() {
             <div className="p-6 overflow-y-auto space-y-8">
               {/* Header Info */}
               <div className="flex items-center gap-6">
-                <div className="w-20 h-20 bg-[#141414] dark:bg-gold dark:text-[#141414] text-white rounded-2xl flex items-center justify-center text-3xl font-bold shadow-lg">
+                <div className="w-20 h-20 bg-navy dark:bg-gold dark:text-navy text-white rounded-2xl flex items-center justify-center text-3xl font-bold shadow-lg">
                   {selectedUniForView.logo || selectedUniForView.name[0]}
                 </div>
                 <div>
-                  <h4 className="text-2xl font-display font-extrabold text-[#141414] dark:text-white">{selectedUniForView.name}</h4>
+                  <h4 className="text-2xl font-display font-extrabold text-navy dark:text-white">{selectedUniForView.name}</h4>
                   <div className="flex flex-wrap gap-4 mt-2">
                     <div className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 font-medium">
                       <Globe size={14} className="text-gold" /> {selectedUniForView.city}, {selectedUniForView.country}
@@ -475,7 +476,7 @@ export default function UniversityManagement() {
               </div>
             </div>
             <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex justify-end">
-              <button onClick={() => setSelectedUniForView(null)} className="px-6 py-2 bg-[#141414] dark:bg-gold dark:text-[#141414] text-white rounded-xl font-bold text-sm hover:bg-slate-800 dark:hover:bg-gold-hover transition-all">Close Details</button>
+              <button onClick={() => setSelectedUniForView(null)} className="px-6 py-2 bg-navy dark:bg-gold dark:text-navy text-white rounded-xl font-bold text-sm hover:bg-slate-800 dark:hover:bg-gold-hover transition-all">Close Details</button>
             </div>
           </div>
         </div>
@@ -497,17 +498,17 @@ export default function UniversityManagement() {
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase">University Name</label>
-                  <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white" />
+                  <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-navy dark:focus:border-gold dark:text-white" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase">Country</label>
-                  <input required type="text" value={formData.country} onChange={e => setFormData({...formData, country: e.target.value})} className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white" />
+                  <input required type="text" value={formData.country} onChange={e => setFormData({...formData, country: e.target.value})} className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-navy dark:focus:border-gold dark:text-white" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase">City</label>
-                  <input required type="text" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white" />
+                  <input required type="text" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-navy dark:focus:border-gold dark:text-white" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -518,7 +519,7 @@ export default function UniversityManagement() {
                     value={formData.qsRank} 
                     onChange={e => handleInputChange("qsRank", e.target.value)} 
                     className={cn(
-                      "w-full p-2.5 bg-slate-50 dark:bg-slate-900 border rounded-lg outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white",
+                      "w-full p-2.5 bg-slate-50 dark:bg-slate-900 border rounded-lg outline-none focus:border-navy dark:focus:border-gold dark:text-white",
                       errors.qsRank ? "border-red-500" : "border-slate-200 dark:border-slate-700"
                     )} 
                   />
@@ -531,7 +532,7 @@ export default function UniversityManagement() {
                     value={formData.tuitionPerYear} 
                     onChange={e => handleInputChange("tuitionPerYear", e.target.value)} 
                     className={cn(
-                      "w-full p-2.5 bg-slate-50 dark:bg-slate-900 border rounded-lg outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white",
+                      "w-full p-2.5 bg-slate-50 dark:bg-slate-900 border rounded-lg outline-none focus:border-navy dark:focus:border-gold dark:text-white",
                       errors.tuitionPerYear ? "border-red-500" : "border-slate-200 dark:border-slate-700"
                     )} 
                   />
@@ -547,7 +548,7 @@ export default function UniversityManagement() {
                     value={formData.minCGPA} 
                     onChange={e => handleInputChange("minCGPA", e.target.value)} 
                     className={cn(
-                      "w-full p-2.5 bg-slate-50 dark:bg-slate-900 border rounded-lg outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white",
+                      "w-full p-2.5 bg-slate-50 dark:bg-slate-900 border rounded-lg outline-none focus:border-navy dark:focus:border-gold dark:text-white",
                       errors.minCGPA ? "border-red-500" : "border-slate-200 dark:border-slate-700"
                     )} 
                   />
@@ -561,7 +562,7 @@ export default function UniversityManagement() {
                     value={formData.minIELTS} 
                     onChange={e => handleInputChange("minIELTS", e.target.value)} 
                     className={cn(
-                      "w-full p-2.5 bg-slate-50 dark:bg-slate-900 border rounded-lg outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white",
+                      "w-full p-2.5 bg-slate-50 dark:bg-slate-900 border rounded-lg outline-none focus:border-navy dark:focus:border-gold dark:text-white",
                       errors.minIELTS ? "border-red-500" : "border-slate-200 dark:border-slate-700"
                     )} 
                   />
@@ -575,7 +576,7 @@ export default function UniversityManagement() {
                   value={formData.livingCost} 
                   onChange={e => handleInputChange("livingCost", e.target.value)} 
                   className={cn(
-                    "w-full p-2.5 bg-slate-50 dark:bg-slate-900 border rounded-lg outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white",
+                    "w-full p-2.5 bg-slate-50 dark:bg-slate-900 border rounded-lg outline-none focus:border-navy dark:focus:border-gold dark:text-white",
                     errors.livingCost ? "border-red-500" : "border-slate-200 dark:border-slate-700"
                   )} 
                 />
@@ -604,7 +605,7 @@ export default function UniversityManagement() {
                           newIntakes[idx].type = e.target.value;
                           setFormData({...formData, intakes: newIntakes});
                         }}
-                        className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white"
+                        className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:border-navy dark:focus:border-gold dark:text-white"
                       >
                         <option value="Fall">Fall</option>
                         <option value="Spring">Spring</option>
@@ -622,7 +623,7 @@ export default function UniversityManagement() {
                           newIntakes[idx].deadline = e.target.value;
                           setFormData({...formData, intakes: newIntakes});
                         }}
-                        className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white" 
+                        className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:border-navy dark:focus:border-gold dark:text-white" 
                       />
                     </div>
                     <button 
@@ -656,7 +657,7 @@ export default function UniversityManagement() {
                       }}
                       className={cn(
                         "px-3 py-1 rounded-full text-xs font-bold border transition-all",
-                        formData.degreeLevel.includes(l) ? "bg-[#141414] dark:bg-gold border-[#141414] dark:border-gold text-white dark:text-[#141414]" : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400"
+                        formData.degreeLevel.includes(l) ? "bg-navy dark:bg-gold border-navy dark:border-gold text-white dark:text-navy" : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400"
                       )}
                     >
                       {l}
@@ -666,19 +667,19 @@ export default function UniversityManagement() {
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">Deadline</label>
-                <input type="date" value={formData.deadline} onChange={e => setFormData({...formData, deadline: e.target.value})} className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white" />
+                <input type="date" value={formData.deadline} onChange={e => setFormData({...formData, deadline: e.target.value})} className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-navy dark:focus:border-gold dark:text-white" />
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">Programs (Comma separated)</label>
-                <input type="text" value={formData.programs} onChange={e => setFormData({...formData, programs: e.target.value})} placeholder="Computer Science, Engineering, Business" className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white" />
+                <input type="text" value={formData.programs} onChange={e => setFormData({...formData, programs: e.target.value})} placeholder="Computer Science, Engineering, Business" className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-navy dark:focus:border-gold dark:text-white" />
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">About University</label>
-                <textarea rows={4} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Describe the university..." className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white resize-none" />
+                <textarea rows={4} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Describe the university..." className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-navy dark:focus:border-gold dark:text-white resize-none" />
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">Status</label>
-                <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-[#141414] dark:focus:border-gold dark:text-white">
+                <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-navy dark:focus:border-gold dark:text-white">
                   <option value="Active" className="dark:bg-[#1A1A1A]">Active</option>
                   <option value="Draft" className="dark:bg-[#1A1A1A]">Draft</option>
                   <option value="Hidden" className="dark:bg-[#1A1A1A]">Hidden</option>
@@ -686,7 +687,7 @@ export default function UniversityManagement() {
               </div>
               <div className="pt-4 flex gap-3">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 border border-slate-200 dark:border-slate-700 rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-slate-800 dark:text-white">Cancel</button>
-                <button type="submit" className="flex-1 py-3 bg-[#141414] dark:bg-gold dark:text-[#141414] text-white rounded-xl font-bold hover:bg-slate-800 dark:hover:bg-gold-hover transition-all">Save University</button>
+                <button type="submit" className="flex-1 py-3 bg-navy dark:bg-gold dark:text-navy text-white rounded-xl font-bold hover:bg-slate-800 dark:hover:bg-gold-hover transition-all">Save University</button>
               </div>
             </form>
           </div>

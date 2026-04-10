@@ -11,7 +11,8 @@ import {
   X,
   Award,
   Globe,
-  DollarSign
+  DollarSign,
+  Sparkles
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { db } from '../firebase';
@@ -75,6 +76,13 @@ export default function ScholarshipManagement() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // URL Validation
+    if (formData.link && !formData.link.match(/^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/)) {
+      alert("Please enter a valid URL (e.g., https://example.com)");
+      return;
+    }
+
     try {
       const data = {
         name: formData.name,
@@ -328,12 +336,42 @@ export default function ScholarshipManagement() {
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Official Link</label>
-                <input type="text" value={formData.link} onChange={e => setFormData({...formData, link: e.target.value})} className="w-full p-2.5 bg-slate-50 dark:bg-[#0F1115] border border-slate-200 dark:border-slate-800 rounded-lg outline-none focus:ring-2 focus:ring-navy/5 dark:focus:ring-gold/5 focus:border-navy dark:focus:border-gold dark:text-white transition-all" />
+                <input 
+                  type="text" 
+                  placeholder="https://example.com/apply"
+                  value={formData.link} 
+                  onChange={e => setFormData({...formData, link: e.target.value})} 
+                  className="w-full p-2.5 bg-slate-50 dark:bg-[#0F1115] border border-slate-200 dark:border-slate-800 rounded-lg outline-none focus:ring-2 focus:ring-navy/5 dark:focus:ring-gold/5 focus:border-navy dark:focus:border-gold dark:text-white transition-all" 
+                />
               </div>
-              <label className="flex items-center gap-2 cursor-pointer group">
-                <input type="checkbox" checked={formData.featured} onChange={e => setFormData({...formData, featured: e.target.checked})} className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-navy dark:text-gold focus:ring-navy dark:focus:ring-gold dark:bg-[#0F1115]" />
-                <span className="text-xs font-bold uppercase tracking-widest text-navy dark:text-white group-hover:text-blue-primary dark:group-hover:text-gold transition-colors">Featured Scholarship</span>
-              </label>
+
+              <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-[#0F1115] rounded-xl border border-slate-200 dark:border-slate-800">
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "p-2 rounded-lg transition-colors",
+                    formData.featured ? "bg-gold/20 text-gold" : "bg-slate-200 dark:bg-slate-800 text-slate-400"
+                  )}>
+                    <Sparkles size={18} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold dark:text-white uppercase tracking-wider">Featured Scholarship</p>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400">Showcase this on the student dashboard</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, featured: !formData.featured})}
+                  className={cn(
+                    "w-12 h-6 rounded-full transition-all relative",
+                    formData.featured ? "bg-gold" : "bg-slate-300 dark:bg-slate-700"
+                  )}
+                >
+                  <div className={cn(
+                    "absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow-sm",
+                    formData.featured ? "left-7" : "left-1"
+                  )} />
+                </button>
+              </div>
               <div className="pt-4 flex gap-3">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 border border-slate-200 dark:border-slate-800 rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-slate-800 dark:text-white transition-colors">Cancel</button>
                 <button type="submit" className="flex-1 py-3 bg-navy dark:bg-gold dark:text-navy text-white rounded-xl font-bold hover:bg-slate-800 dark:hover:bg-gold-hover transition-all shadow-lg shadow-navy/10 dark:shadow-gold/10">Save Scholarship</button>
